@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="/static/dist/css/bootstrap.min.css">
+    <link href="/static/dist/css/sticky-footer.css" rel="stylesheet">
+      <!--<link href="/static/dist/css/diff.css" rel="stylesheet">-->
+
+
+    <title>Configure Files Distributor-{{ sources.title }}</title>
+  </head>
+  <body>
+    <div class="container">
+      {% block main %}
+        <div class="row">
+        {% block left %}
+            <div class="col-md-3">
+                <div class="card">
+                  <h5 class="card-header">ShortCuts</h5>
+                  <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><a href="/web/list/">Agent List</a></li>
+                        <li class="list-group-item"><a href="/web/config/">Config List</a></li>
+                        <li class="list-group-item"><a href="/web/diff/">Config Diff</a></li>
+                    </ul>
+                  </div>
+                </div>
+            </div>
+        {% endblock %}
+
+        {% block right %}
+            <div class="col-md-9">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">IP 地址</th>
+                      <th scope="col">Agent 状态</th>
+                      <th scope="col">连接时间</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row"><a href="/web/agent/?id=145678">145678</a></th>
+                      <td>192.168.1.30</td>
+                      <td>正常</td>
+                      <td>2 h 30 min</td>
+                    </tr>
+                    <tr class="table-info">
+                      <th scope="row">145656</th>
+                      <td>192.168.1.44</td>
+                      <td>连接中</td>
+                      <td>*</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">332212</th>
+                      <td>192.168.1.47</td>
+                      <td>正常</td>
+                      <td> 2 h 22 min </td>
+                    </tr>
+                    <tr>
+                      <th scope="row">145677</th>
+                      <td>192.168.1.31</td>
+                      <td>正常</td>
+                      <td>2 h 30 min</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">145678</th>
+                      <td>192.168.1.32</td>
+                      <td>正常</td>
+                      <td>2 h 30 min</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">145644</th>
+                      <td>192.168.1.33</td>
+                      <td>正常</td>
+                      <td>2 h 30 min</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">145665</th>
+                      <td>192.168.1.34</td>
+                      <td>正常</td>
+                      <td>2 h 30 min</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">145612</th>
+                      <td>192.168.1.35</td>
+                      <td>正常</td>
+                      <td>2 h 30 min</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">145534</th>
+                      <td>192.168.1.37</td>
+                      <td>正常</td>
+                      <td>2 h 30 min</td>
+                    </tr>
+                    <tr class="table-info">
+                      <th scope="row">145323</th>
+                      <td>192.168.1.88</td>
+                      <td>连接中</td>
+                      <td>2 h 30 min</td>
+                    </tr>
+                    <tr>
+                      <th scope="row">145212</th>
+                      <td>192.168.1.111</td>
+                      <td>正常</td>
+                      <td>2 h 30 min</td>
+                    </tr>
+                    <tr class="table-danger">
+                      <th scope="row">145232</th>
+                      <td>192.168.1.175</td>
+                      <td>无响应</td>
+                      <td>*</td>
+                    </tr>
+                  </tbody>
+                </table>
+            </div>
+        {% endblock %}
+        </div>
+      {% endblock %}
+    </div>
+
+    <footer class="footer">
+      <div class="container text-center">
+        <span>Web manager written by <a href="mailto:shallowcloud@yeah.net">Yorling</a>.</span>
+      </div>
+    </footer>
+    <script src="/static/dist/js/jquery-3.3.1.slim.min.js"></script>
+    <script src="/static/dist/js/popper.min.js"></script>
+    <script src="/static/dist/js/bootstrap.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+
+{% block right %}
+<div class="col-md-9">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">配置文件名字</th>
+                      <th scope="col">创建时间</th>
+                      <th scope="col">状态</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th scope="row"><a href="/web/text/?id=1">1</a></th>
+                      <td>SSH</td>
+                      <td>2018-05-09</td>
+                      <td>正常</td>
+                    </tr>
+                    <tr class="table-danger">
+                      <th scope="row"><a href="/web/text/?id=2">2</a></th>
+                      <td>MySQL</td>
+                      <td>2018-05-09</td>
+                      <td>未配置完全</td>
+                    </tr>
+                    <tr>
+                      <th scope="row"><a href="/web/text/?id=3">3</a></th>
+                      <td>Nginx</td>
+                      <td>2018-05-09</td>
+                      <td>正常</td>
+                    </tr>
+                  </tbody>
+                </table>
+</div>
+{% endblock %}

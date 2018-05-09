@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>ConfigDiff</title>
+	<link rel="stylesheet" href="/static/dist/css/diff.css"/>
+</head>
+<body>
+<div id="settings">
+	<h1>配置文件对比</h1>
+	<label><input type="radio" name="diff_type" value="diffChars" checked> 字符</label>
+	<label><input type="radio" name="diff_type" value="diffWords"> 单词</label>
+	<label><input type="radio" name="diff_type" value="diffLines"> 行</label>
+	<label><input type="radio" name="diff_type" value="diffTrimmedLines"> 去空格行</label>
+	<label><input type="radio" name="diff_type" value="createPatch"> Patch</label>
+	<label><input type="radio" name="diff_type" value="applyPatch"> Merge</label>
+</div>
+
+<table>
+	<tr>
+		<td contenteditable="true" id="a">upstream django {
+    server 127.0.0.1:8001;
+}
+
+server {
+    listen 443;
+    server_name sz.yorling.com;
+    ssl on;
+    ssl_certificate /home/ssl/fullchain.pem;
+    ssl_certificate_key /home/ssl/privkey.pem;
+    location /static/  {
+        alias /home/app/manager/static/;
+    }
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass django;
+
+        uwsgi_param Host $host;
+        uwsgi_param X-Real-IP $remote_addr;
+        uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+        uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
+    }
+}</td>
+		<td contenteditable="true" id="b">upstream django {
+    server 127.0.0.1:8001;
+}
+
+server {
+    listen 443;
+    server_name sz.yorling.com;
+    ssl on;
+    ssl_certificate /home/ssl/fullchain.pem;
+    location /static/  {
+            alias /home/other/;
+        alias /home/app/manager/static/;
+    }
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass django;
+
+        uwsgi_param Host $host;
+        uwsgi_param X-Real-IP $remote_addr;
+        uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+            uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+        uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
+
+    }
+}</td>
+		<td id="result"></td>
+	</tr>
+</table>
+
+<script src="/static/dist/js/diff.js"></script>
+<script defer>
+var a = document.getElementById('a');
+var b = document.getElementById('b');
+var result = document.getElementById('result');
+
+function changed() {
+	if(window.diffType == 'applyPatch') {
+		b.textContent = JsDiff.applyPatch(a.textContent, result.textContent);
+	} else if(window.diffType == 'createPatch') {
+		result.textContent = JsDiff.createPatch('filename',a.textContent, b.textContent,'left','right');
+	} else {
+		var diff = JsDiff[window.diffType](a.textContent, b.textContent);
+		var fragment = document.createDocumentFragment();
+		for (var i=0; i < diff.length; i++) {
+
+			if (diff[i].added && diff[i + 1] && diff[i + 1].removed) {
+				var swap = diff[i];
+				diff[i] = diff[i + 1];
+				diff[i + 1] = swap;
+			}
+
+			var node;
+			if (diff[i].removed) {
+				node = document.createElement('del');
+				node.appendChild(document.createTextNode(diff[i].value));
+			} else if (diff[i].added) {
+				node = document.createElement('ins');
+				node.appendChild(document.createTextNode(diff[i].value));
+			} else {
+				node = document.createTextNode(diff[i].value);
+			}
+			fragment.appendChild(node);
+		}
+
+		result.textContent = '';
+		result.appendChild(fragment);
+	}
+}
+
+window.onload = function() {
+	onDiffTypeChange(document.querySelector('#settings [name="diff_type"]:checked'));
+	changed();
+};
+
+a.onpaste = a.onchange =
+b.onpaste = b.onchange =
+result.onpaste = result.onchange =
+ changed;
+
+if ('oninput' in a) {
+	a.oninput = b.oninput = result.oninput = changed;
+} else {
+	a.onkeyup = b.onkeyup = result.onkeyup = changed;
+}
+
+function onDiffTypeChange(radio) {
+	window.diffType = radio.value;
+	document.title = "Diff " + radio.parentNode.innerText;
+	if(window.diffType == "applyPatch") {
+		b.removeAttribute('contenteditable');
+		result.setAttribute('contenteditable','true');
+	} else {
+		result.removeAttribute('contenteditable');
+		b.setAttribute('contenteditable','true');
+	}
+}
+
+var radio = document.getElementsByName('diff_type');
+for (var i = 0; i < radio.length; i++) {
+	radio[i].onchange = function(e) {
+		onDiffTypeChange(e.target);
+		changed();
+	}
+}
+</script>
+</body>
+</html>
