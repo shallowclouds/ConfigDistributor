@@ -11,7 +11,7 @@ __pycache__/
 env/
 build/
 develop-eggs/
-dist/
+# dist/
 downloads/
 eggs/
 .eggs/
@@ -99,3 +99,10 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+/.vscode
+*.log
+/.idea
+db.sqlite3
+migrations/*
+tmp_static/*
