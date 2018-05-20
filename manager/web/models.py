@@ -3,12 +3,6 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 
 
-class UserProfile(models.Model):
-
-    user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
-    id = models.AutoField("ID", primary_key=True)
-
-
 class ConfigFile(models.Model):
 
     STATUS_CHOICES = (
@@ -23,8 +17,11 @@ class ConfigFile(models.Model):
     contents = models.TextField("contents", default="")
     create_time = models.DateTimeField("create time", default=timezone.now)
 
+    def __str__(self):
+        return self.name
 
-class Server(models.Model):
+
+class Agent(models.Model):
 
     STATUS_CHOICES = (
         ("正常", "该节点与服务器连接正常"),
@@ -35,6 +32,11 @@ class Server(models.Model):
     id = models.AutoField("ID", primary_key=True)
     ip_address = models.GenericIPAddressField("ip address", protocol="IPv4", default="127.0.0.1")
     status = models.CharField("status", max_length=20, choices=STATUS_CHOICES, default="未连接")
+    configs = models.ManyToManyField('ConfigFile', blank=True)
+
+    def __str__(self):
+        return self.ip_address
+
 
 
     

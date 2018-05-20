@@ -24,8 +24,10 @@
                   <div class="card-body">
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item"><a href="/web/list/">Agent List</a></li>
+                        <li class="list-group-item"><a href="/web/list/add/">Add Agent</a></li>
                         <li class="list-group-item"><a href="/web/config/">Config List</a></li>
-                        <li class="list-group-item"><a href="/web/diff/">Config Diff</a></li>
+                        <li class="list-group-item"><a href="/web/config/add/">Add Config</a></li>
+                        <li class="list-group-item"><a href="/web/logout/">Logout</a></li>
                     </ul>
                   </div>
                 </div>
@@ -44,78 +46,14 @@
                     </tr>
                   </thead>
                   <tbody>
+                    {% for i in sources.agents %}
                     <tr>
-                      <th scope="row"><a href="/web/agent/?id=145678">145678</a></th>
-                      <td>192.168.1.30</td>
-                      <td>正常</td>
-                      <td>2 h 30 min</td>
-                    </tr>
-                    <tr class="table-info">
-                      <th scope="row">145656</th>
-                      <td>192.168.1.44</td>
-                      <td>连接中</td>
+                      <th scope="row"><a href="/web/agent/{{ i.id }}/">{{ i.id }}</th>
+                      <td>{{ i.ip_address }}</td>
+                      <td>{{ i.status }}</td>
                       <td>*</td>
                     </tr>
-                    <tr>
-                      <th scope="row">332212</th>
-                      <td>192.168.1.47</td>
-                      <td>正常</td>
-                      <td> 2 h 22 min </td>
-                    </tr>
-                    <tr>
-                      <th scope="row">145677</th>
-                      <td>192.168.1.31</td>
-                      <td>正常</td>
-                      <td>2 h 30 min</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">145678</th>
-                      <td>192.168.1.32</td>
-                      <td>正常</td>
-                      <td>2 h 30 min</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">145644</th>
-                      <td>192.168.1.33</td>
-                      <td>正常</td>
-                      <td>2 h 30 min</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">145665</th>
-                      <td>192.168.1.34</td>
-                      <td>正常</td>
-                      <td>2 h 30 min</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">145612</th>
-                      <td>192.168.1.35</td>
-                      <td>正常</td>
-                      <td>2 h 30 min</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">145534</th>
-                      <td>192.168.1.37</td>
-                      <td>正常</td>
-                      <td>2 h 30 min</td>
-                    </tr>
-                    <tr class="table-info">
-                      <th scope="row">145323</th>
-                      <td>192.168.1.88</td>
-                      <td>连接中</td>
-                      <td>2 h 30 min</td>
-                    </tr>
-                    <tr>
-                      <th scope="row">145212</th>
-                      <td>192.168.1.111</td>
-                      <td>正常</td>
-                      <td>2 h 30 min</td>
-                    </tr>
-                    <tr class="table-danger">
-                      <th scope="row">145232</th>
-                      <td>192.168.1.175</td>
-                      <td>无响应</td>
-                      <td>*</td>
-                    </tr>
+                    {% endfor %}
                   </tbody>
                 </table>
             </div>
