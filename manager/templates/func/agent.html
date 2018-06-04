@@ -4,11 +4,15 @@
 {% block right %}
 <div class="card">
   <div class="card-body">
-      <p>IP: 192.168.1.30</p>
-      <p>AgentID: 145678</p>
-      <p>Status: <span class="badge badge-pill badge-success">Good</span></p>
+      <p>IP: {{ sources.agents.ip_address }}</p>
+      <p>AgentID: {{ sources.agents.id }}</p>
+      <p>Status: <span class="badge badge-pill badge-success">{{ sources.agents.status }}</span></p>
       <p>LastConnectTime: Just now</p>
-      <p>Configs: <span class="badge badge-pill badge-info">SSH</span><span class="badge badge-pill badge-info">MySQL</span><span class="badge badge-pill badge-info">Nginx</span></p>
+      <p>Configs:
+          {% for i in sources.agents.configs %}
+          <a href="/web/config/{{i.id}}/"><span class="badge badge-pill badge-info">{{ i.name }}</span></a>
+          {% endfor %}
+      </p>
       <p></p>
   </div>
 </div>

@@ -13,24 +13,14 @@
                     </tr>
                   </thead>
                   <tbody>
+                    {% for i in sources.configs %}
                     <tr>
-                      <th scope="row"><a href="/web/text/?id=1">1</a></th>
-                      <td>SSH</td>
-                      <td>2018-05-09</td>
-                      <td>正常</td>
+                      <th scope="row"><a href="/web/config/{{ i.id }}/">{{ i.id }}</a></th>
+                      <td>{{ i.name }}</td>
+                      <td>{{ i.create_time }}</td>
+                      <td>{{ i.status }}</td>
                     </tr>
-                    <tr class="table-danger">
-                      <th scope="row"><a href="/web/text/?id=2">2</a></th>
-                      <td>MySQL</td>
-                      <td>2018-05-09</td>
-                      <td>未配置完全</td>
-                    </tr>
-                    <tr>
-                      <th scope="row"><a href="/web/text/?id=3">3</a></th>
-                      <td>Nginx</td>
-                      <td>2018-05-09</td>
-                      <td>正常</td>
-                    </tr>
+                    {% endfor %}
                   </tbody>
                 </table>
 </div>

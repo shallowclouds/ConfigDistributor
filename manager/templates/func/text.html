@@ -5,37 +5,14 @@
 <div class="col-md-9">
 <div class="card">
   <div class="card-header">
-    配置文件内容-Nginx<span class="badge badge-pill badge-success">Good</span>
+    配置文件内容-{{ sources.configs.name }}<span class="badge badge-pill badge-success">{{ sources.configs.status }}</span>
 <button type="button" class="btn btn-primary">编辑</button>
       <button type="button" class="btn btn-danger">删除</button>
   </div>
   <div class="card-body">
     <blockquote class="blockquote mb-0">
         <pre><code>
-upstream django {
-    server 127.0.0.1:8001;
-}
-
-server {
-    listen 443;
-    server_name sz.yorling.com;
-    ssl on;
-    ssl_certificate /home/ssl/fullchain.pem;
-    ssl_certificate_key /home/ssl/privkey.pem;
-    location /static/  {
-        alias /home/app/manager/static/;
-    }
-
-    location / {
-        include uwsgi_params;
-        uwsgi_pass django;
-
-        uwsgi_param Host $host;
-        uwsgi_param X-Real-IP $remote_addr;
-        uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
-        uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
-    }
-}
+            {{ sources.configs.contents }}
         </code></pre>
       <footer class="blockquote-footer"> Edited by <cite title="Source Title">Yorling</cite></footer>
     </blockquote>

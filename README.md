@@ -49,6 +49,22 @@ a system to distribute configure files using Django and python.
    - python 库 pycrypto
 2. 部署及使用说明
    - 使用 Docker 部署
+
+     - ```bash
+       docker run xxx
+       ```
+
+     - 
+
+   - 裸部署
+
+     - ```bash
+       sudo apt-get update
+       sudo apt-get install -y python3 python3-pip
+       sudo pip3 install -r requriements.txt
+       ```
+
+     - 
 3. 注意事项
    - 使用前请先编辑配置好配置文件
 4. 单元测试
