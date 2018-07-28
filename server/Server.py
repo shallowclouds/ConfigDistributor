@@ -1,8 +1,40 @@
 import asyncio
 import concurrent.futures
 import functools
+import inspect
 import os
 import time
+
+# If DEBUG == True, Server will output some debug information.
+DEBUG_ = True
+
+# Some const variable
+CRED = '\033[91m'
+CGREEN2 = '\33[92m'
+CEND = '\033[0m'
+DEBUG = 10
+INFO = 20
+LOGGING_LEVEL = 0
+
+
+def info(*args, level=INFO):
+    if level < LOGGING_LEVEL:
+        return
+
+    prompt = ''
+    if level == DEBUG:
+        prompt = 'Info'
+    elif level == INFO:
+        prompt = 'Debug'
+    if DEBUG_:
+        current_frame = inspect.currentframe()
+        if current_frame is not None:
+            func = inspect.getframeinfo(current_frame.f_back).function
+            print(CRED + ('[%s] <%s>' % (prompt, func)) + CGREEN2, *args, CEND)
+        else:
+            print(CRED + ('[%s]' % prompt) + CGREEN2, *args, CEND)
+    else:
+        print(CRED + ('[%s]' % prompt) + CGREEN2, *args, CEND)
 
 
 def timethis(func):
@@ -18,7 +50,7 @@ def timethis(func):
 
 
 async def file_distribute(message, port, loop):
-
+    print("aaaaaaaaaaaa")
     reader, writer = await asyncio.open_connection('127.0.0.1', port,
                                                    loop=loop)
 
@@ -33,37 +65,46 @@ async def file_distribute(message, port, loop):
 
 
 @timethis
-def subprocess_routine(index: int):
+def subprocess_routine(serv_addr: list, path: str):
     loop = asyncio.get_event_loop()
-    fs = [file_distribute("Hello from %d!" % 8887 + i, 8887 + i, loop) for i in range(0, 2)]
+    fs = [file_distribute("Hello from %d!" % (8887 + i), 8887 + i, loop) for i in range(0, 2)]
+    print("xxxxxxxxxxxxxx")
+    '''
+    loop.run_until_complete(asyncio.gather(file_distribute("Hello from %d!" % 8887, 8887, loop),
+                                           file_distribute("Hello from %d!" % 8888, 8888, loop),))
+    loop.close()
+
     while True:
-
-        done, pending = loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.FIRST_COMPLETED))
+        done, pending = 
         print("--SubProcess[%d]: Is pending set empty %d" % (index, not pending,))
-        break
+        if not pending:
+            break
+    '''
 
 
-def subprocess_distributor():
+def send_files(attrs: dict):
     core_cnt = os.cpu_count()
+    block_len = int(len(attrs['Server-List']) / core_cnt)
+    block_cnt = core_cnt if len(attrs['Server-List']) % core_cnt == 0 else core_cnt + 1
+
+    serv_addrs = []
+    for i in range(0, block_cnt):
+        serv_addrs.append(attrs['Server-List'][i * block_len:min(((i + 1) * block_len - 1), len(attrs['Server-List']))])
+
     with concurrent.futures.ProcessPoolExecutor(max_workers=core_cnt) as executor:
-        sp_routines = [executor.submit(subprocess_routine, i) for i in range(0, 2)]
+        sp_routines = [executor.submit(subprocess_routine, serv_addrs[i], attrs['Path']) for i in range(0, block_cnt)]
         print(sp_routines)
         for future in concurrent.futures.as_completed(sp_routines):
             pass
 
 
 def main():
-    subprocess_distributor()
-
-
-def test():
-    message = 'Hello World!'
-    loop = asyncio.get_event_loop()
-    '''loop.run_until_complete(asyncio.gather(tcp_echo_client(message, 8887, loop),
-                                           tcp_echo_client(message, 8888, loop),
-                                           tcp_echo_client(message, 8889, loop)))
-    '''
-    loop.close()
+    global LOGGING_LEVEL
+    if DEBUG_:
+        LOGGING_LEVEL = DEBUG
+    else:
+        LOGGING_LEVEL = INFO
+    info('test!')
 
 
 if __name__ == '__main__':
