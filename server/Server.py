@@ -99,13 +99,12 @@ def send_files(attrs: dict):
 
 
 def main():
-    global LOGGING_LEVEL
+    pass
+
+
+if __name__ == '__main__':
     if DEBUG_:
         LOGGING_LEVEL = DEBUG
     else:
         LOGGING_LEVEL = INFO
-    info('test!')
-
-
-if __name__ == '__main__':
     main()
