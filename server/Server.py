@@ -57,7 +57,7 @@ def timethis(func):
     return wrapper
 
 
-def encrypt(plain_attr: dict, key: bytes) -> str:
+def dict_encrypt(plain_attr: dict, key: bytes) -> str:
     cipher = ChaCha20.new(key=key)
     json_attr = json.dumps(plain_attr).encode()
     encrypted_data_bytes = cipher.encrypt(json_attr)
@@ -68,7 +68,7 @@ def encrypt(plain_attr: dict, key: bytes) -> str:
     return json.dumps({'nonce': nonce, 'ciphertext': encrypted_data})
 
 
-def decrypt(encrypted_json_str: str, key: bytes) -> dict:
+def dict_decrypt(encrypted_json_str: str, key: bytes) -> dict:
     encrypted_json = json.loads(encrypted_json_str)
     cipher_text = base64.b64decode(encrypted_json['ciphertext'])
     nonce = base64.b64decode(encrypted_json['nonce'])
@@ -82,15 +82,15 @@ async def file_distribute(attr: dict, addr: str, loop, key: bytes):
         reader, writer = await asyncio.wait_for(
             asyncio.open_connection(addr, 8888, loop=loop), timeout=attr['Timeout'])
 
-        data_to_sent = encrypt(attr, key).encode()
+        data_to_sent = dict_encrypt(attr, key).encode()
         info(data_to_sent, level=DEBUG)
 
         writer.write(data_to_sent)
         writer.write_eof()
 
-        data = await reader.read()
-        attr = decrypt(data, key)
-        info('Received: %r from' % data, addr, level=DEBUG)
+        attr_recv_enc = await reader.read()
+        attr = dict_decrypt(attr_recv_enc, key)
+        info('Received: %r from' % attr_recv_enc, addr, level=DEBUG)
         info('Send file:', attr['Result'])
 
         info('Close the socket:', addr, level=DEBUG)
