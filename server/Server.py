@@ -1,11 +1,14 @@
 import asyncio
+import base64
 import concurrent.futures
 import functools
 import inspect
 import json
 import os
-import sys
 import time
+
+from Crypto.Cipher import ChaCha20
+from Crypto.Random import get_random_bytes
 
 # If DEBUG == True, Server will output some debug information.
 DEBUG_ = True
@@ -54,12 +57,42 @@ def timethis(func):
     return wrapper
 
 
-async def file_distribute(attr: dict, addr: str, loop):
+def encrypt(plain_attr: dict, key: bytes) -> str:
+    cipher = ChaCha20.new(key=key)
+    json_attr = json.dumps(plain_attr).encode()
+    encrypted_data_bytes = cipher.encrypt(json_attr)
+
+    nonce = base64.b64encode(cipher.nonce).decode()
+    encrypted_data = base64.b64encode(encrypted_data_bytes).decode()
+
+    return json.dumps({'nonce': nonce, 'ciphertext': encrypted_data})
+
+
+def decrypt(encrypted_json_str: str, key: bytes) -> dict:
+    encrypted_json = json.loads(encrypted_json_str)
+    cipher_text = base64.b64decode(encrypted_json['ciphertext'])
+    nonce = base64.b64decode(encrypted_json['nonce'])
+    cipher = ChaCha20.new(key=key, nonce=nonce)
+    json_attr = cipher.decrypt(cipher_text)
+    return json.loads(json_attr)
+
+
+async def file_distribute(attr: dict, addr: str, loop, key: bytes):
     try:
-        reader, writer = await asyncio.wait_for(asyncio.open_connection(addr, 8888, loop=loop), timeout=1)
-        writer.write(json.dumps(attr).encode())
-        data = await reader.readuntil(separator=b'End')
-        info('Received: %r from' % data.decode(), addr, level=DEBUG)
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(addr, 8888, loop=loop), timeout=attr['Timeout'])
+
+        data_to_sent = encrypt(attr, key).encode()
+        info(data_to_sent, level=DEBUG)
+
+        writer.write(data_to_sent)
+        writer.write_eof()
+
+        data = await reader.read()
+        attr = decrypt(data, key)
+        info('Received: %r from' % data, addr, level=DEBUG)
+        info('Send file:', attr['Result'])
+
         info('Close the socket:', addr, level=DEBUG)
         writer.close()
     except (TimeoutError, asyncio.TimeoutError):
@@ -71,23 +104,20 @@ async def file_distribute(attr: dict, addr: str, loop):
         info(type(e), ':', e, level=ERROR)
 
 
-def subprocess_routine(attrs: dict):
+def subprocess_routine(attrs: dict, key: bytes):
     info(attrs, level=DEBUG)
     server_list = attrs['Server-List']
     attrs.pop('Server-List')
 
-    if sys.platform == 'win32':
-        loop = asyncio.ProactorEventLoop()
-        asyncio.set_event_loop(loop)
-    else:
-        loop = asyncio.get_event_loop()
-    fs = [file_distribute(attrs, server_list[i], loop) for i in range(0, len(server_list))]
+    loop = asyncio.get_event_loop()
+
+    fs = [file_distribute(attrs, server_list[i], loop, key) for i in range(0, len(server_list))]
 
     loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.ALL_COMPLETED))
-    loop.close()
+    # loop.close()
 
 
-def send_files(attrs: dict):
+def send_files(attrs: dict, key: bytes):
     core_cnt = os.cpu_count()
     block_len = max(int(len(attrs['Server-List']) / core_cnt), 5)
     block_cnt = int(len(attrs['Server-List']) / block_len)
@@ -103,7 +133,7 @@ def send_files(attrs: dict):
         for i in range(0, block_cnt):
             new_attrs.append({**attrs})
             new_attrs[i]['Server-List'] = serv_addr_slices[i]
-            sp_routines.append(executor.submit(subprocess_routine, new_attrs[i]))
+            sp_routines.append(executor.submit(subprocess_routine, new_attrs[i], key))
         info(sp_routines, level=DEBUG)
         concurrent.futures.wait(sp_routines)
 
@@ -115,9 +145,12 @@ def main():
             'google.com',
             '127.0.0.1'
         ],
-        'Content-Length': 42
+        'Content-Length': 42,
+        'Timeout': 4
     }
-    send_files(attrs)
+    key = get_random_bytes(32)
+    key_ = b'\x0c@\xf0\x0f +\xd1g\x84\xf1#Z\xc3\xe4\xabX|\xe7\xa4\x00\x94\xc5{\x0eS\x8e\x1f\x1e\x07\xd0eh'
+    send_files(attrs, key_)
 
 
 if __name__ == '__main__':
