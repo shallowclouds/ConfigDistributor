@@ -1,25 +1,27 @@
-import sys
 import json
+import sys
 from socketserver import BaseRequestHandler, TCPServer
 
 
 class EchoHandler(BaseRequestHandler):
     def handle(self):
         print("Get connection from", self.client_address)
-        while True:
-            msg = self.request.recv(8192)
-            attrs = json.loads(msg.decode())
-            print("Msg from", self.client_address, ":", msg)
+        msg = self.request.recv(8192)
+        attrs = json.loads(msg.decode())
+        print("Msg from", self.client_address, ":", msg.decode())
+        try:
             print(attrs['Server-List'])
-            if not msg:
+        except:
+            pass
+        if not msg:
+            print('Empty Msg!')
+        while True:
+            msg = input("Msg: ")
+            self.request.send(msg.encode())
+            if msg == 'End':
                 break
-            while True:
-                msg = input("Msg: ")
-                self.request.send(msg.encode())
-                if msg == 'End\n':
-                    break
 
 
 if __name__ == '__main__':
-    serv = TCPServer(('', int(sys.argv[1])), EchoHandler)
-    serv.serve_forever()
+    with TCPServer(('', int(sys.argv[1])), EchoHandler) as server:
+        server.serve_forever()

@@ -2,7 +2,9 @@ import asyncio
 import concurrent.futures
 import functools
 import inspect
+import json
 import os
+import sys
 import time
 
 # If DEBUG == True, Server will output some debug information.
@@ -14,6 +16,7 @@ CGREEN2 = '\33[92m'
 CEND = '\033[0m'
 DEBUG = 10
 INFO = 20
+ERROR = 30
 LOGGING_LEVEL = 0
 
 
@@ -23,9 +26,11 @@ def info(*args, level=INFO):
 
     prompt = ''
     if level == DEBUG:
-        prompt = 'Info'
-    elif level == INFO:
         prompt = 'Debug'
+    elif level == INFO:
+        prompt = 'Info'
+    elif level == ERROR:
+        prompt = 'Error'
     if DEBUG_:
         current_frame = inspect.currentframe()
         if current_frame is not None:
@@ -49,57 +54,70 @@ def timethis(func):
     return wrapper
 
 
-async def file_distribute(message, port, loop):
-    print("aaaaaaaaaaaa")
-    reader, writer = await asyncio.open_connection('127.0.0.1', port,
-                                                   loop=loop)
+async def file_distribute(attr: dict, addr: str, loop):
+    try:
+        reader, writer = await asyncio.wait_for(asyncio.open_connection(addr, 8888, loop=loop), timeout=1)
+        writer.write(json.dumps(attr).encode())
+        data = await reader.readuntil(separator=b'End')
+        info('Received: %r from' % data.decode(), addr, level=DEBUG)
+        info('Close the socket:', addr, level=DEBUG)
+        writer.close()
+    except (TimeoutError, asyncio.TimeoutError):
+        info('Timeout Error: Failed to connect to %s.' % addr,
+             'Please check the availability of the connection.', level=ERROR)
+    except ConnectionRefusedError:
+        info('Connection Refused Error: %s refused to establish connection.' % addr)
+    except Exception as e:
+        info(type(e), ':', e, level=ERROR)
 
-    print('%d Send: %r' % (port, message,))
-    writer.write(message.encode())
 
-    data = await reader.readuntil(separator=b'End')
-    print('Received: %r' % data.decode())
+def subprocess_routine(attrs: dict):
+    info(attrs, level=DEBUG)
+    server_list = attrs['Server-List']
+    attrs.pop('Server-List')
 
-    print('Close the socket')
-    writer.close()
+    if sys.platform == 'win32':
+        loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(loop)
+    else:
+        loop = asyncio.get_event_loop()
+    fs = [file_distribute(attrs, server_list[i], loop) for i in range(0, len(server_list))]
 
-
-@timethis
-def subprocess_routine(serv_addr: list, path: str):
-    loop = asyncio.get_event_loop()
-    fs = [file_distribute("Hello from %d!" % (8887 + i), 8887 + i, loop) for i in range(0, 2)]
-    print("xxxxxxxxxxxxxx")
-    '''
-    loop.run_until_complete(asyncio.gather(file_distribute("Hello from %d!" % 8887, 8887, loop),
-                                           file_distribute("Hello from %d!" % 8888, 8888, loop),))
+    loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.ALL_COMPLETED))
     loop.close()
-
-    while True:
-        done, pending = 
-        print("--SubProcess[%d]: Is pending set empty %d" % (index, not pending,))
-        if not pending:
-            break
-    '''
 
 
 def send_files(attrs: dict):
     core_cnt = os.cpu_count()
-    block_len = int(len(attrs['Server-List']) / core_cnt)
-    block_cnt = core_cnt if len(attrs['Server-List']) % core_cnt == 0 else core_cnt + 1
-
-    serv_addrs = []
+    block_len = max(int(len(attrs['Server-List']) / core_cnt), 5)
+    block_cnt = int(len(attrs['Server-List']) / block_len)
+    block_cnt += 1 if len(attrs['Server-List']) % block_len else 0
+    serv_addr_slices = []
     for i in range(0, block_cnt):
-        serv_addrs.append(attrs['Server-List'][i * block_len:min(((i + 1) * block_len - 1), len(attrs['Server-List']))])
+        serv_addr_slices.append(
+            attrs['Server-List'][i * block_len: min((i + 1) * block_len, len(attrs['Server-List']))])
 
+    new_attrs = []
     with concurrent.futures.ProcessPoolExecutor(max_workers=core_cnt) as executor:
-        sp_routines = [executor.submit(subprocess_routine, serv_addrs[i], attrs['Path']) for i in range(0, block_cnt)]
-        print(sp_routines)
-        for future in concurrent.futures.as_completed(sp_routines):
-            pass
+        sp_routines = []
+        for i in range(0, block_cnt):
+            new_attrs.append({**attrs})
+            new_attrs[i]['Server-List'] = serv_addr_slices[i]
+            sp_routines.append(executor.submit(subprocess_routine, new_attrs[i]))
+        info(sp_routines, level=DEBUG)
+        concurrent.futures.wait(sp_routines)
 
 
 def main():
-    pass
+    attrs = {
+        'Method': 'SEND',
+        'Server-List': [
+            'google.com',
+            '127.0.0.1'
+        ],
+        'Content-Length': 42
+    }
+    send_files(attrs)
 
 
 if __name__ == '__main__':
