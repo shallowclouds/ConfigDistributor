@@ -6,24 +6,42 @@ from server.utils import Encryptor
 from server.utils import Logger
 
 
-async def file_distribute(attr: dict, addr: str, loop, key: bytes):
-    try:
-        reader, writer = await asyncio.wait_for(
-            asyncio.open_connection(addr, 8888, loop=loop), timeout=attr['Timeout'])
+class StreamHandlers:
+    def __init__(self, addr: str, timeout: int, loop, key: bytes):
+        self.loop = loop
+        self.addr = addr
+        self.key = key
+        self.timeout = timeout
 
-        data_to_sent = Encryptor.dict_encrypt(attr, key).encode()
+    async def __aenter__(self):
+        self.reader, self.writer = await asyncio.wait_for(
+            asyncio.open_connection(self.addr, 8888, loop=self.loop), timeout=self.timeout)
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        self.writer.close()
+
+    def send_attrs(self, attrs: dict):
+        data_to_sent = (Encryptor.dict_encrypt(attrs, self.key) + '\n').encode()
         Logger.info(data_to_sent, level=Logger.DEBUG)
 
-        writer.write(data_to_sent)
-        writer.write_eof()
+        self.writer.write(data_to_sent)
 
-        attr_recv_enc = await reader.read()
-        attr = Encryptor.dict_decrypt(attr_recv_enc, key)
-        Logger.info('Received: %r from' % attr_recv_enc, addr, level=Logger.DEBUG)
-        Logger.info('Send file:', attr['Result'])
+    async def recv_attrs(self) -> dict:
+        attr_recv_enc = await self.reader.readuntil(separator=b'\n')
+        Logger.info('attr_recv_enc:', attr_recv_enc)
+        attr_recv = Encryptor.dict_decrypt(attr_recv_enc[:-1], self.key)
+        Logger.info('Received attr_encrypted: %r from' % attr_recv_enc, self.addr, level=Logger.DEBUG)
+        Logger.info('attr_recv:', attr_recv)
+        return attr_recv
 
-        Logger.info('Close the socket:', addr, level=Logger.DEBUG)
-        writer.close()
+
+async def do_method(attrs: dict, addr: str, loop, key: bytes):
+    try:
+        async with StreamHandlers(addr, attrs['Timeout'], loop, key) as handler:
+            handler.send_attrs(attrs)
+            attr_recv = await handler.recv_attrs()
+            print(attr_recv['Result'])
     except (TimeoutError, asyncio.TimeoutError):
         Logger.info('Timeout Error: Failed to connect to %s.' % addr,
                     'Please check the availability of the connection.', level=Logger.ERROR)
@@ -40,13 +58,13 @@ def subprocess_routine(attrs: dict, key: bytes):
 
     loop = asyncio.get_event_loop()
 
-    fs = [file_distribute(attrs, server_list[i], loop, key) for i in range(0, len(server_list))]
+    fs = [do_method(attrs, server_list[i], loop, key) for i in range(0, len(server_list))]
 
     loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.ALL_COMPLETED))
     # loop.close()
 
 
-def send_files(attrs: dict, key: bytes):
+def pass_attrs_to_clients(attrs: dict, key: bytes):
     core_cnt = os.cpu_count()
     block_len = max(int(len(attrs['Server-List']) / core_cnt), 5)
     block_cnt = int(len(attrs['Server-List']) / block_len)

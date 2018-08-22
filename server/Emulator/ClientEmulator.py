@@ -75,30 +75,30 @@ def server():
     while True:
         print("Waiting for client")
         conn, fromaddr = bindsocket.accept()
+        conn.setblocking(False)
         print("Client connected: {}:{}".format(fromaddr[0], fromaddr[1]))
         # conn = context.wrap_socket(newsocket, server_side=True)
         # print("SSL established. Peer: {}".format(conn.getpeercert()))
         buf = b''  # Buffer to hold received client data
         try:
             while True:
-                data = conn.recv(4096)
-                if data:
-                    # Client sent us data. Append to buffer
-                    buf += data
-                else:
-                    # No more data from client. Show buffer and close connection.
-                    print("Received:", buf)
+                data = conn.recv(1)
+                buf += data
+                if data == b'\n':
                     break
-                attrs = decrypt(data, key)
-                print("Msg from", fromaddr, ":", data)
-                print(attrs)
+            print("Received:", buf)
+            attrs = decrypt(data, key)
+            print("Msg from", fromaddr, ":", data)
+            print(attrs)
         except Exception as e:
             print(type(e), e)
         finally:
             attrs_ret = {
                 'Result': True
             }
-            conn.send(encrypt(attrs_ret, key).encode())
+            send_data = (encrypt(attrs_ret, key) + '\n').encode()
+            conn.send(send_data)
+            print('send_data:', send_data)
             print("Closing connection")
             conn.shutdown(socket.SHUT_RDWR)
             conn.close()
