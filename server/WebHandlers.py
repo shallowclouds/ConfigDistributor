@@ -51,35 +51,30 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
         Logger.info(type(e), ':', e, level=Logger.ERROR)
 
 
-def subprocess_routine(attrs: dict, key: bytes):
+def subprocess_routine(attrs: dict, server_list_slice: list, key: bytes):
     Logger.info(attrs, level=Logger.DEBUG)
-    server_list = attrs['Server-List']
-    attrs.pop('Server-List')
 
     loop = asyncio.get_event_loop()
 
-    fs = [do_method(attrs, server_list[i], loop, key) for i in range(0, len(server_list))]
+    fs = [do_method(attrs, server_list_slice[i], loop, key) for i in range(0, len(server_list_slice))]
 
     loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.ALL_COMPLETED))
     # loop.close()
 
 
-def pass_attrs_to_clients(attrs: dict, key: bytes):
+def pass_attrs_to_clients(attrs: dict, server_list: list, key: bytes):
     core_cnt = os.cpu_count()
-    block_len = max(int(len(attrs['Server-List']) / core_cnt), 5)
-    block_cnt = int(len(attrs['Server-List']) / block_len)
-    block_cnt += 1 if len(attrs['Server-List']) % block_len else 0
-    serv_addr_slices = []
+    block_len = max(int(len(server_list) / core_cnt), 5)
+    block_cnt = int(len(server_list) / block_len)
+    block_cnt += 1 if len(server_list) % block_len else 0
+    server_list_slices = []
     for i in range(0, block_cnt):
-        serv_addr_slices.append(
-            attrs['Server-List'][i * block_len: min((i + 1) * block_len, len(attrs['Server-List']))])
+        server_list_slices.append(
+            server_list[i * block_len: min((i + 1) * block_len, len(server_list))])
 
-    new_attrs = []
     with concurrent.futures.ProcessPoolExecutor(max_workers=core_cnt) as executor:
         sp_routines = []
         for i in range(0, block_cnt):
-            new_attrs.append({**attrs})
-            new_attrs[i]['Server-List'] = serv_addr_slices[i]
-            sp_routines.append(executor.submit(subprocess_routine, new_attrs[i], key))
+            sp_routines.append(executor.submit(subprocess_routine, attrs, server_list_slices[i], key))
         Logger.info(sp_routines, level=Logger.DEBUG)
         concurrent.futures.wait(sp_routines)

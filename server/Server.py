@@ -1,7 +1,7 @@
 import functools
 import time
 
-from server import StreamHandlers
+from server import WebHandlers
 from server.utils import Encryptor
 from server.utils import Logger
 
@@ -24,17 +24,17 @@ def timethis(func):
 def main():
     attrs = {
         'Method': 'SEND',
-        'Server-List': [
-            'google.com',
-            '127.0.0.1'
-        ],
         'Msg': 'TTTTTTTTTTT',
         'Content-Length': 42,
         'Timeout': 4
     }
+    server_list = [
+        'google.com',
+        '127.0.0.1'
+    ]
     key = Encryptor.get_key32()
     key_ = b'\x0c@\xf0\x0f +\xd1g\x84\xf1#Z\xc3\xe4\xabX|\xe7\xa4\x00\x94\xc5{\x0eS\x8e\x1f\x1e\x07\xd0eh'
-    StreamHandlers.pass_attrs_to_clients(attrs, key_)
+    WebHandlers.pass_attrs_to_clients(attrs, server_list, key_)
 
 
 if __name__ == '__main__':
