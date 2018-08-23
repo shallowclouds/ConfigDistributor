@@ -23,18 +23,17 @@ def timethis(func):
 
 def main():
     attrs = {
-        'Method': 'SEND',
-        'Msg': 'TTTTTTTTTTT',
-        'Content-Length': 42,
-        'Timeout': 4
+        'method': 'send',
+        'path': 'C:/Users/76033/Desktop/Test/Server/cfg1.txt',
+        'timeout': 4
     }
-    server_list = [
+    client_list = [
         'google.com',
         '127.0.0.1'
     ]
     key = Encryptor.get_key32()
     key_ = b'\x0c@\xf0\x0f +\xd1g\x84\xf1#Z\xc3\xe4\xabX|\xe7\xa4\x00\x94\xc5{\x0eS\x8e\x1f\x1e\x07\xd0eh'
-    WebHandlers.pass_attrs_to_clients(attrs, server_list, key_)
+    WebHandlers.pass_attrs_to_clients(attrs, client_list, key_)
 
 
 if __name__ == '__main__':

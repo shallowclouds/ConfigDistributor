@@ -13,9 +13,14 @@ class Test:
         raise ConnectionRefusedError
 
 
-if __name__ == '__main__':
-    with Test() as t:
-        print('...')
-        t.raise_exp()
+def filetest(path):
+    with open(path, 'rb') as file, Test() as t:
+        try:
+            print(file.read())
+        except:
+            return
 
-    print(',..sadf.sdaf.')
+
+if __name__ == '__main__':
+    filetest('C:/Users/76033/Desktop/'
+             'Huffman_Tree.cpp')

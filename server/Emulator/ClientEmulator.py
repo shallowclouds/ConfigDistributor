@@ -40,28 +40,8 @@ import base64
 import json
 import socket
 
-from Crypto.Cipher import ChaCha20
-
-
-def encrypt(plain_attr: dict, key: bytes) -> str:
-    cipher = ChaCha20.new(key=key)
-    json_attr = json.dumps(plain_attr).encode()
-    encrypted_data_bytes = cipher.encrypt(json_attr)
-
-    nonce = base64.b64encode(cipher.nonce).decode()
-    encrypted_data = base64.b64encode(encrypted_data_bytes).decode()
-
-    return json.dumps({'nonce': nonce, 'ciphertext': encrypted_data})
-
-
-def decrypt(encrypted_json_str: str, key: bytes) -> dict:
-    encrypted_json = json.loads(encrypted_json_str)
-    cipher_text = base64.b64decode(encrypted_json['ciphertext'])
-    nonce = base64.b64decode(encrypted_json['nonce'])
-    cipher = ChaCha20.new(key=key, nonce=nonce)
-    json_attr = cipher.decrypt(cipher_text)
-    return json.loads(json_attr)
-
+import server.utils.Encryptor as Encryptor
+import server.utils.Logger as Logger
 
 def server():
     listen_addr = '127.0.0.1'
@@ -75,7 +55,7 @@ def server():
     while True:
         print("Waiting for client")
         conn, fromaddr = bindsocket.accept()
-        conn.setblocking(False)
+        # conn.setblocking(False)
         print("Client connected: {}:{}".format(fromaddr[0], fromaddr[1]))
         # conn = context.wrap_socket(newsocket, server_side=True)
         # print("SSL established. Peer: {}".format(conn.getpeercert()))
@@ -83,20 +63,22 @@ def server():
         try:
             while True:
                 data = conn.recv(1)
-                buf += data
                 if data == b'\n':
                     break
+                buf += data
             print("Received:", buf)
-            attrs = decrypt(data, key)
+            attrs = Encryptor.dict_decrypt(buf, key)
             print("Msg from", fromaddr, ":", data)
-            print(attrs)
+            print("attrs:", attrs)
+            print(base64.b64decode(attrs['file-content'].encode()))
         except Exception as e:
-            print(type(e), e)
+            Logger.info(type(e), e)
+            raise e
         finally:
             attrs_ret = {
                 'Result': True
             }
-            send_data = (encrypt(attrs_ret, key) + '\n').encode()
+            send_data = (Encryptor.dict_encrypt(attrs_ret, key) + '\n').encode()
             conn.send(send_data)
             print('send_data:', send_data)
             print("Closing connection")
@@ -105,4 +87,5 @@ def server():
 
 
 if __name__ == '__main__':
+    Logger.set_debug(True)
     server()

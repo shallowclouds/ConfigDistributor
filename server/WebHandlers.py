@@ -1,9 +1,20 @@
 import asyncio
+import base64
 import concurrent.futures
 import os
 
 from server.utils import Encryptor
 from server.utils import Logger
+
+
+def file_to_b64str(path: str) -> str:
+    with open(path, 'rb') as file:
+        return base64.b64encode(file.read()).decode()
+
+
+def b64str_to_file(path: str, content: str):
+    with open(path, 'wb') as file:
+        file.write(base64.b64decode(content.encode()))
 
 
 class StreamHandlers:
@@ -37,11 +48,37 @@ class StreamHandlers:
 
 
 async def do_method(attrs: dict, addr: str, loop, key: bytes):
+    """
+    Handle different methods in attributes dict here
+
+    the following lists all the methods:
+    send, get, check_conn, close
+
+    :param attrs: the attributes to be sent to client specified by addr
+    :param addr: the address of client
+    :param loop: the event loop that the subprocess uses
+    :param key: the key of cipher
+    """
     try:
-        async with StreamHandlers(addr, attrs['Timeout'], loop, key) as handler:
+        async with StreamHandlers(addr, attrs['timeout'], loop, key) as handler:
+            if attrs['method'] == 'send':
+                attrs['file-content'] = file_to_b64str(attrs['path'])
+                Logger.info(attrs, level=Logger.DEBUG)
+
+                handler.send_attrs(attrs)
+
+                attr_recv = await handler.recv_attrs()
+                Logger.info(attr_recv['Result'], level=Logger.DEBUG)
+                return attr_recv['Result']
+            elif attrs['method'] == 'get':
+                handler.send_attrs(attrs)
+                attr_recv = await handler.recv_attrs()
+
+            """
             handler.send_attrs(attrs)
             attr_recv = await handler.recv_attrs()
             print(attr_recv['Result'])
+            """
     except (TimeoutError, asyncio.TimeoutError):
         Logger.info('Timeout Error: Failed to connect to %s.' % addr,
                     'Please check the availability of the connection.', level=Logger.ERROR)
@@ -51,30 +88,41 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
         Logger.info(type(e), ':', e, level=Logger.ERROR)
 
 
-def subprocess_routine(attrs: dict, server_list_slice: list, key: bytes):
+def subprocess_routine(attrs: dict, client_list_slice: list, key: bytes):
     Logger.info(attrs, level=Logger.DEBUG)
 
     loop = asyncio.get_event_loop()
 
-    fs = [do_method(attrs, server_list_slice[i], loop, key) for i in range(0, len(server_list_slice))]
+    fs = [do_method(attrs, client_list_slice[i], loop, key) for i in range(0, len(client_list_slice))]
 
-    loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.ALL_COMPLETED))
-    # loop.close()
+    ret = []
+    done, _ = loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.ALL_COMPLETED))
+    for fut in done:
+        ret.append(fut.result())
+    loop.close()
+    Logger.info('Result of single subprocess:', ret, level=Logger.DEBUG)
+    return ret
 
 
-def pass_attrs_to_clients(attrs: dict, server_list: list, key: bytes):
+def pass_attrs_to_clients(attrs: dict, client_list: list, key: bytes):
     core_cnt = os.cpu_count()
-    block_len = max(int(len(server_list) / core_cnt), 5)
-    block_cnt = int(len(server_list) / block_len)
-    block_cnt += 1 if len(server_list) % block_len else 0
-    server_list_slices = []
+    block_len = max(int(len(client_list) / core_cnt), 5)
+    block_cnt = int(len(client_list) / block_len)
+    block_cnt += 1 if len(client_list) % block_len else 0
+    client_list_slices = []
     for i in range(0, block_cnt):
-        server_list_slices.append(
-            server_list[i * block_len: min((i + 1) * block_len, len(server_list))])
+        client_list_slices.append(
+            client_list[i * block_len: min((i + 1) * block_len, len(client_list))])
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=core_cnt) as executor:
         sp_routines = []
         for i in range(0, block_cnt):
-            sp_routines.append(executor.submit(subprocess_routine, attrs, server_list_slices[i], key))
+            sp_routines.append(executor.submit(subprocess_routine, attrs, client_list_slices[i], key))
         Logger.info(sp_routines, level=Logger.DEBUG)
-        concurrent.futures.wait(sp_routines)
+        done, _ = concurrent.futures.wait(sp_routines)
+
+    ret = []
+    for fut in done:
+        ret += fut.result()
+    Logger.info("Concatenated result of all subprocess: ", ret, level=Logger.DEBUG)
+    return ret

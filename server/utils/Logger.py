@@ -29,7 +29,7 @@ def info(*args, level=INFO):
         prompt = 'Info'
     elif level == ERROR:
         prompt = 'Error'
-    if LOGGING_LEVEL == DEBUG:
+    if level in (DEBUG, ERROR):
         current_frame = inspect.currentframe()
         if current_frame is not None:
             func = inspect.getframeinfo(current_frame.f_back).function
