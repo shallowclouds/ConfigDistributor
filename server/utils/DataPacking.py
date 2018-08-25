@@ -2,9 +2,12 @@ __all__ = ['dict_decrypt', 'dict_encrypt', 'get_key32']
 
 import base64
 import json
+from typing import Union
 
 from Crypto.Cipher import ChaCha20
 from Crypto.Random import get_random_bytes
+
+__all__ = 'dict_encrypt', 'dict_decrypt'
 
 
 def dict_encrypt(plain_attr: dict, key: bytes) -> str:
@@ -18,7 +21,7 @@ def dict_encrypt(plain_attr: dict, key: bytes) -> str:
     return json.dumps({'nonce': nonce, 'ciphertext': encrypted_data})
 
 
-def dict_decrypt(encrypted_json_str: str, key: bytes) -> dict:
+def dict_decrypt(encrypted_json_str: Union[dict, str], key: bytes) -> dict:
     encrypted_json = json.loads(encrypted_json_str)
     cipher_text = base64.b64decode(encrypted_json['ciphertext'])
     nonce = base64.b64decode(encrypted_json['nonce'])
