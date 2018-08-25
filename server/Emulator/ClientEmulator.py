@@ -40,7 +40,7 @@ import base64
 import json
 import socket
 
-import server.utils.Encryptor as Encryptor
+import server.utils.DataPacking as Encryptor
 import server.utils.Logger as Logger
 
 def server():
@@ -78,7 +78,7 @@ def server():
             attrs_ret = {
                 'Result': True
             }
-            send_data = (Encryptor.dict_encrypt(attrs_ret, key) + '\n').encode()
+            send_data = Encryptor.dict_encrypt(attrs_ret, key)
             conn.send(send_data)
             print('send_data:', send_data)
             print("Closing connection")

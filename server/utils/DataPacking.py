@@ -1,16 +1,13 @@
-__all__ = ['dict_decrypt', 'dict_encrypt', 'get_key32']
+__all__ = ('dict_decrypt', 'dict_encrypt', 'get_key32')
 
 import base64
 import json
-from typing import Union
 
 from Crypto.Cipher import ChaCha20
 from Crypto.Random import get_random_bytes
 
-__all__ = 'dict_encrypt', 'dict_decrypt'
 
-
-def dict_encrypt(plain_attr: dict, key: bytes) -> str:
+def dict_encrypt(plain_attr: dict, key: bytes) -> bytes:
     cipher = ChaCha20.new(key=key)
     json_attr = json.dumps(plain_attr).encode()
     encrypted_data_bytes = cipher.encrypt(json_attr)
@@ -18,11 +15,11 @@ def dict_encrypt(plain_attr: dict, key: bytes) -> str:
     nonce = base64.b64encode(cipher.nonce).decode()
     encrypted_data = base64.b64encode(encrypted_data_bytes).decode()
 
-    return json.dumps({'nonce': nonce, 'ciphertext': encrypted_data})
+    return (json.dumps({'nonce': nonce, 'ciphertext': encrypted_data}) + '\n').encode()
 
 
-def dict_decrypt(encrypted_json_str: Union[dict, str], key: bytes) -> dict:
-    encrypted_json = json.loads(encrypted_json_str)
+def dict_decrypt(encrypted_json_str: bytes, key: bytes) -> dict:
+    encrypted_json = json.loads(encrypted_json_str[:-1])
     cipher_text = base64.b64decode(encrypted_json['ciphertext'])
     nonce = base64.b64decode(encrypted_json['nonce'])
     cipher = ChaCha20.new(key=key, nonce=nonce)
@@ -32,3 +29,13 @@ def dict_decrypt(encrypted_json_str: Union[dict, str], key: bytes) -> dict:
 
 def get_key32() -> bytes:
     return get_random_bytes(32)
+
+
+def file_to_b64str(path: str) -> str:
+    with open(path, 'rb') as file:
+        return base64.b64encode(file.read()).decode()
+
+
+def b64str_to_file(path: str, content: str):
+    with open(path, 'wb') as file:
+        file.write(base64.b64decode(content.encode()))

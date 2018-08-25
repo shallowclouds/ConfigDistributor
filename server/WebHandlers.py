@@ -1,20 +1,26 @@
 import asyncio
-import base64
 import concurrent.futures
 import os
 
-from server.utils import Encryptor
+from server.utils import DataPacking
 from server.utils import Logger
 
 
-def file_to_b64str(path: str) -> str:
-    with open(path, 'rb') as file:
-        return base64.b64encode(file.read()).decode()
+class RetObj:
+    def __init__(self, address, result: bool, exp_type=None, exc_val=None):
+        self.result = result
+        self.address = address
+        if exp_type is not None:
+            self.exp_type = exp_type
+            self.exp_val = exc_val
 
-
-def b64str_to_file(path: str, content: str):
-    with open(path, 'wb') as file:
-        file.write(base64.b64decode(content.encode()))
+    def return_dict(self):
+        return {
+            'result': self.result,
+            'exp_type': self.exp_type,
+            'exp_val': self.exp_val,
+            'address': self.address
+        }
 
 
 class StreamHandlers:
@@ -33,7 +39,7 @@ class StreamHandlers:
         self.writer.close()
 
     def send_attrs(self, attrs: dict):
-        data_to_sent = (Encryptor.dict_encrypt(attrs, self.key) + '\n').encode()
+        data_to_sent = DataPacking.dict_encrypt(attrs, self.key)
         Logger.info(data_to_sent, level=Logger.DEBUG)
 
         self.writer.write(data_to_sent)
@@ -41,7 +47,7 @@ class StreamHandlers:
     async def recv_attrs(self) -> dict:
         attr_recv_enc = await self.reader.readuntil(separator=b'\n')
         Logger.info('attr_recv_enc:', attr_recv_enc)
-        attr_recv = Encryptor.dict_decrypt(attr_recv_enc[:-1], self.key)
+        attr_recv = DataPacking.dict_decrypt(attr_recv_enc, self.key)
         Logger.info('Received attr_encrypted: %r from' % attr_recv_enc, self.addr, level=Logger.DEBUG)
         Logger.info('attr_recv:', attr_recv)
         return attr_recv
@@ -62,14 +68,17 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
     try:
         async with StreamHandlers(addr, attrs['timeout'], loop, key) as handler:
             if attrs['method'] == 'send':
-                attrs['file-content'] = file_to_b64str(attrs['path'])
+                attrs['file-content-b64'] = DataPacking.file_to_b64str(attrs['local-path'])
                 Logger.info(attrs, level=Logger.DEBUG)
 
                 handler.send_attrs(attrs)
 
                 attr_recv = await handler.recv_attrs()
-                Logger.info(attr_recv['Result'], level=Logger.DEBUG)
-                return attr_recv['Result']
+                Logger.info(attr_recv['result'], level=Logger.DEBUG)
+                if attr_recv['result']:
+                    return RetObj(addr, True)
+                else:
+                    return RetObj(addr, False, attr_recv['exc_type'], attr_recv['exc_val'])
             elif attrs['method'] == 'get':
                 handler.send_attrs(attrs)
                 attr_recv = await handler.recv_attrs()
