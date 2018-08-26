@@ -24,8 +24,8 @@ def timethis(func):
 def main():
     attrs = {
         'method': 'send',
-        'local-path': 'C:/Users/76033/Desktop/Test/Server/cfg1.txt',
-        'remote-path': 'C:/Users/76033/Desktop/Test/Client/cfg1.txt',
+        'local-path': 'C:/Users/76033/Desktop/Test/Server/FireShot Capture 4.png',
+        'remote-path': 'C:/Users/76033/Desktop/Test/Client/FireShot Capture 4.png',
         'timeout': 4
     }
     client_list = [

@@ -6,28 +6,55 @@ import server.utils.Logger as Logger
 key_ = b'\x0c@\xf0\x0f +\xd1g\x84\xf1#Z\xc3\xe4\xabX|\xe7\xa4\x00\x94\xc5{\x0eS\x8e\x1f\x1e\x07\xd0eh'
 
 
+class StreamHandler:
+    def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, key: bytes):
+        self.reader = reader
+        self.writer = writer
+        self.key = key
+
+    async def recv_attr(self):
+        attr_recv_enc = b''
+        while True:
+            try:
+                attr_recv_enc += await self.reader.readuntil(separator=b'\n')
+            except asyncio.LimitOverrunError as exc:
+                Logger.info('Consumed:', exc.consumed, level=Logger.DEBUG)
+                attr_recv_enc += await self.reader.read(exc.consumed)
+            else:
+                break
+        attr_recv = DataPacking.dict_decrypt(attr_recv_enc[:-1], self.key)
+        return attr_recv
+
+    def send_attrs(self, attrs: dict):
+        data_to_sent = DataPacking.dict_encrypt(attrs, self.key) + b'\n'
+        Logger.info(data_to_sent, level=Logger.DEBUG)
+        self.writer.write(data_to_sent)
+
+
 async def response_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    handler = StreamHandler(reader, writer, key_)
     try:
+        success_ret = {'result': True}
+
         Logger.info('Connection established.', level=Logger.DEBUG)
-        data = await reader.readuntil(separator=b'\n')
-        attrs_recv: dict = DataPacking.dict_decrypt(data, key_)
+        attrs_recv = await handler.recv_attr()
         Logger.info(attrs_recv, level=Logger.DEBUG)
+
         if attrs_recv['method'] == 'send':
-            Logger.info("attrs_recv['method'] is 'send'", level=Logger.DEBUG)
             DataPacking.b64str_to_file(attrs_recv['remote-path'], attrs_recv['file-content-b64'])
         elif attrs_recv['method'] == 'get':
-            Logger.info("attrs_recv['method'] is 'get'", level=Logger.DEBUG)
+            success_ret.update({
+                'file-content-b64': DataPacking.file_to_b64str(attrs_recv['remote-path'])
+            })
     except Exception as e:
         Logger.info(type(e), e, level=Logger.DEBUG)
-        writer.write(DataPacking.dict_encrypt({
+        handler.send_attrs({
             'result': False,
             'exc_type': str(type(e)).split("'")[1],
             'exc_val': str(e)
-        }, key_))
+        })
     else:
-        writer.write(DataPacking.dict_encrypt({
-            'result': True
-        }, key_))
+        handler.send_attrs(success_ret)
 
 
 def main():

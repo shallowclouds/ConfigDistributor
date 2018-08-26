@@ -15,11 +15,11 @@ def dict_encrypt(plain_attr: dict, key: bytes) -> bytes:
     nonce = base64.b64encode(cipher.nonce).decode()
     encrypted_data = base64.b64encode(encrypted_data_bytes).decode()
 
-    return (json.dumps({'nonce': nonce, 'ciphertext': encrypted_data}) + '\n').encode()
+    return json.dumps({'nonce': nonce, 'ciphertext': encrypted_data}).encode()
 
 
 def dict_decrypt(encrypted_json_str: bytes, key: bytes) -> dict:
-    encrypted_json = json.loads(encrypted_json_str[:-1])
+    encrypted_json = json.loads(encrypted_json_str)
     cipher_text = base64.b64decode(encrypted_json['ciphertext'])
     nonce = base64.b64decode(encrypted_json['nonce'])
     cipher = ChaCha20.new(key=key, nonce=nonce)

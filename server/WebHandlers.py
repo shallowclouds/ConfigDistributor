@@ -7,7 +7,7 @@ from server.utils import Logger
 
 
 class RetObj:
-    def __init__(self, address, result: bool, exp_type=None, exc_val=None):
+    def __init__(self, address: str, result: bool, exp_type: str = None, exc_val: str = None):
         self.result = result
         self.address = address
         if exp_type is not None:
@@ -15,12 +15,10 @@ class RetObj:
             self.exp_val = exc_val
 
     def return_dict(self):
-        return {
-            'result': self.result,
-            'exp_type': self.exp_type,
-            'exp_val': self.exp_val,
-            'address': self.address
-        }
+        if self.result:
+            return {self.address: {'result': self.result}}
+        else:
+            return {self.address: {'result': self.result, 'exp_type': self.exp_type, 'exp_val': self.exp_val}}
 
 
 class StreamHandlers:
@@ -39,15 +37,23 @@ class StreamHandlers:
         self.writer.close()
 
     def send_attrs(self, attrs: dict):
-        data_to_sent = DataPacking.dict_encrypt(attrs, self.key)
+        data_to_sent = DataPacking.dict_encrypt(attrs, self.key) + b'\n'
         Logger.info(data_to_sent, level=Logger.DEBUG)
 
         self.writer.write(data_to_sent)
 
     async def recv_attrs(self) -> dict:
-        attr_recv_enc = await self.reader.readuntil(separator=b'\n')
+        attr_recv_enc = b''
+        while True:
+            try:
+                attr_recv_enc += await self.reader.readuntil(separator=b'\n')
+            except asyncio.LimitOverrunError as exc:
+                Logger.info('Consumed:', exc.consumed, level=Logger.DEBUG)
+                attr_recv_enc += await self.reader.read(exc.consumed)
+            else:
+                break
         Logger.info('attr_recv_enc:', attr_recv_enc)
-        attr_recv = DataPacking.dict_decrypt(attr_recv_enc, self.key)
+        attr_recv = DataPacking.dict_decrypt(attr_recv_enc[:-1], self.key)
         Logger.info('Received attr_encrypted: %r from' % attr_recv_enc, self.addr, level=Logger.DEBUG)
         Logger.info('attr_recv:', attr_recv)
         return attr_recv
@@ -74,7 +80,6 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
                 handler.send_attrs(attrs)
 
                 attr_recv = await handler.recv_attrs()
-                Logger.info(attr_recv['result'], level=Logger.DEBUG)
                 if attr_recv['result']:
                     return RetObj(addr, True)
                 else:
@@ -82,19 +87,25 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
             elif attrs['method'] == 'get':
                 handler.send_attrs(attrs)
                 attr_recv = await handler.recv_attrs()
-
-            """
-            handler.send_attrs(attrs)
-            attr_recv = await handler.recv_attrs()
-            print(attr_recv['Result'])
-            """
+                if attr_recv['result']:
+                    DataPacking.b64str_to_file(attrs['local-path'], attr_recv['file-content-b64'])
+                    return RetObj(addr, True)
+                else:
+                    return RetObj(addr, False, attr_recv['exc_type'], attr_recv['exc_val'])
     except (TimeoutError, asyncio.TimeoutError):
-        Logger.info('Timeout Error: Failed to connect to %s.' % addr,
-                    'Please check the availability of the connection.', level=Logger.ERROR)
+        exc_val = 'Timeout Error: Failed to connect to %s. ' \
+                  'Please check the availability of the connection.' % addr
+        Logger.info(exc_val, level=Logger.DEBUG)
+        return RetObj(addr, False, 'TimeoutError', exc_val)
     except ConnectionRefusedError:
-        Logger.info('Connection Refused Error: %s refused to establish connection.' % addr)
+        exc_val = 'Connection Refused Error: %s refused to establish connection.' % addr
+        Logger.info(exc_val, level=Logger.DEBUG)
+        return RetObj(addr, False, 'ConnectionRefusedError', exc_val)
     except Exception as e:
-        Logger.info(type(e), ':', e, level=Logger.ERROR)
+        exc_type = str(type(e)).split("'")[1]
+        exc_val = str(e)
+        Logger.info(exc_type, ':', exc_val, level=Logger.ERROR)
+        return RetObj(addr, False, exc_type, exc_val)
 
 
 def subprocess_routine(attrs: dict, client_list_slice: list, key: bytes):
@@ -104,12 +115,12 @@ def subprocess_routine(attrs: dict, client_list_slice: list, key: bytes):
 
     fs = [do_method(attrs, client_list_slice[i], loop, key) for i in range(0, len(client_list_slice))]
 
-    ret = []
+    ret = {}
     done, _ = loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.ALL_COMPLETED))
     for fut in done:
-        ret.append(fut.result())
+        ret.update(fut.result().return_dict())
     loop.close()
-    Logger.info('Result of single subprocess:', ret, level=Logger.DEBUG)
+    # Logger.info('Result of single subprocess:', ret, level=Logger.DEBUG)
     return ret
 
 
@@ -130,8 +141,8 @@ def pass_attrs_to_clients(attrs: dict, client_list: list, key: bytes):
         Logger.info(sp_routines, level=Logger.DEBUG)
         done, _ = concurrent.futures.wait(sp_routines)
 
-    ret = []
+    ret = {}
     for fut in done:
-        ret += fut.result()
+        ret.update(fut.result())
     Logger.info("Concatenated result of all subprocess: ", ret, level=Logger.DEBUG)
     return ret
