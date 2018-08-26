@@ -1,22 +1,27 @@
 import asyncio
 import concurrent.futures
 import os
+import time
 
 from server.utils import DataPacking
 from server.utils import Logger
 
 
 class RetObj:
-    def __init__(self, address: str, result: bool, exp_type: str = None, exc_val: str = None):
+    def __init__(self, address: str, result: bool, exp_type: str = None, exc_val: str = None, **kwargs):
         self.result = result
         self.address = address
+        self.kwargs = kwargs
         if exp_type is not None:
             self.exp_type = exp_type
             self.exp_val = exc_val
 
     def return_dict(self):
         if self.result:
-            return {self.address: {'result': self.result}}
+            success_ret = {self.address: {'result': self.result}}
+            success_ret[self.address].update(self.kwargs)
+            Logger.info(success_ret, level=Logger.DEBUG)
+            return success_ret
         else:
             return {self.address: {'result': self.result, 'exp_type': self.exp_type, 'exp_val': self.exp_val}}
 
@@ -84,6 +89,7 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
                     return RetObj(addr, True)
                 else:
                     return RetObj(addr, False, attr_recv['exc_type'], attr_recv['exc_val'])
+
             elif attrs['method'] == 'get':
                 handler.send_attrs(attrs)
                 attr_recv = await handler.recv_attrs()
@@ -92,6 +98,14 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
                     return RetObj(addr, True)
                 else:
                     return RetObj(addr, False, attr_recv['exc_type'], attr_recv['exc_val'])
+
+            elif attrs['method'] == 'check_conn':
+                handler.send_attrs(attrs)
+                start = time.time()
+                attr_recv = await handler.recv_attrs()
+                end = time.time()
+                return RetObj(addr, attr_recv['result'], latency=round(end - start, 3))
+
     except (TimeoutError, asyncio.TimeoutError):
         exc_val = 'Timeout Error: Failed to connect to %s. ' \
                   'Please check the availability of the connection.' % addr
@@ -144,5 +158,5 @@ def pass_attrs_to_clients(attrs: dict, client_list: list, key: bytes):
     ret = {}
     for fut in done:
         ret.update(fut.result())
-    Logger.info("Concatenated result of all subprocess: ", ret, level=Logger.DEBUG)
+    # Logger.info("Concatenated result of all subprocess: ", ret, level=Logger.DEBUG)
     return ret

@@ -46,6 +46,8 @@ async def response_handler(reader: asyncio.StreamReader, writer: asyncio.StreamW
             success_ret.update({
                 'file-content-b64': DataPacking.file_to_b64str(attrs_recv['remote-path'])
             })
+        elif attrs_recv['method'] == 'check_conn':
+            pass
     except Exception as e:
         Logger.info(type(e), e, level=Logger.DEBUG)
         handler.send_attrs({

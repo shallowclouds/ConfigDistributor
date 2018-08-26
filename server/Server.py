@@ -23,7 +23,7 @@ def timethis(func):
 
 def main():
     attrs = {
-        'method': 'send',
+        'method': 'check_conn',
         'local-path': 'C:/Users/76033/Desktop/Test/Server/FireShot Capture 4.png',
         'remote-path': 'C:/Users/76033/Desktop/Test/Client/FireShot Capture 4.png',
         'timeout': 4
@@ -34,7 +34,8 @@ def main():
     ]
     key = DataPacking.get_key32()
     key_ = b'\x0c@\xf0\x0f +\xd1g\x84\xf1#Z\xc3\xe4\xabX|\xe7\xa4\x00\x94\xc5{\x0eS\x8e\x1f\x1e\x07\xd0eh'
-    WebHandlers.pass_attrs_to_clients(attrs, client_list, key_)
+    ret_val = WebHandlers.pass_attrs_to_clients(attrs, client_list, key_)
+    Logger.info("Concatenated result of all subprocess: ", ret_val, level=Logger.DEBUG)
 
 
 if __name__ == '__main__':
