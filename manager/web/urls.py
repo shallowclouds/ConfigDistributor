@@ -8,7 +8,7 @@ config_urls = [
     path('edit/<int:id>/', views.ConfigEditView, name="ConfigEdit"),
     path('delete/<int:id>/', views.ConfigDeleteView, name="ConfigDelete"),
     path('add/<int:id>/', views.ConfigAddView, name="ConfigAdd"),
-    path('diff/<int:id>/<int:id>/', views.ConfigDiffView, name="ConfigDiff"),
+    path('diff/<int:id1>/<int:id2>/', views.ConfigDiffView, name="ConfigDiff"),
 ]
 
 agent_urls = [
@@ -17,7 +17,6 @@ agent_urls = [
     path('add/<int:id>/', views.AgentAddView, name="AgentAdd"),
     path('edit/<int:id>/', views.AgentEditView, name="AgentEdit"),
     path('addConfig/<int:id>/', views.AgentAddconfigView, name="AgentAddconfig"),
-    path('addConfig/<int:id>/<int:configId>/', views.AgentAddconfigByIdView, name="AgentAddconfigById"),
 ]
 
 auth_urls = [
