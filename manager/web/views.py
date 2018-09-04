@@ -1,17 +1,98 @@
-from django.shortcuts import render
-from django.views import View
-from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+import json
+
+from django.contrib import auth
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
-from django.contrib import auth
+from django.views import View
 from manager import const
-from . import serializers
-from . import models
-import json
+
+from . import models, serializers
+
+
+class ConfigListView(View):
+    pass
+
+
+class ConfigProfileView(View):
+    pass
+
+
+class ConfigAddView(View):
+    pass
+
+
+class ConfigEditView(View):
+    pass
+
+
+class ConfigDeleteView(View):
+    pass
+
+
+class ConfigDiffView(View):
+    pass
+
+
+class AgentListView(View):
+    pass
+
+
+class AgentProfileView(View):
+    pass
+
+
+class AgentAddView(View):
+    pass
+
+
+class AgentEditView(View):
+    pass
+
+
+class AgentAddconfigView(View):
+    pass
+
+
+class AgentAddconfigByIdView(View):
+    pass
+
+
+class AuthLoginView(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse("ConfigList"))
+        return render(request, "auth/login.html")
+
+    def post(self, request):
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse("ConfigList"))
+
+        if "username" in request.POST and "password" in request.POST:
+            auth_res = auth.authenticate(request, username=request.POST["username"], password=request.POST["password"])
+            if auth_res and auth_res.is_active:
+                auth.login(request, auth_res)
+                if "next" in request.GET:
+                    return HttpResponseRedirect(request.GET["next"])
+                else:
+                    return HttpResponseRedirect(reverse("ConfigList"))
+            else:
+                return render(request, "auth/login.html", {"error": [const.LOGIN_ERROR_TIP]})
+        else:
+            return render(request, "auth/login.html", {"error": [const.LOGIN_ERROR_EMPTY_TIP]})
+
+class AuthLogoutView(View):
+    @method_decorator(login_required(login_url="AuthLogin"))
+    def get(self, request):
+        auth.logout(request)
+        return HttpResponseRedirect(reverse("AuthLogin"))
+
+
+class PushView(View):
+    pass
 
 
 class WebConfigView(View):
@@ -86,4 +167,3 @@ class WebLogoutView(View):
     def get(self, request):
         auth.logout(request)
         return HttpResponseRedirect(reverse("WebLogin"))
-

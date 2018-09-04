@@ -2,5 +2,3 @@ cryptography==2.1.4
 Django==2.0.4
 djangorestframework==3.8.1
 PyMySQL==0.8.0
-pyuv==1.4.0
-

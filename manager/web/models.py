@@ -7,7 +7,7 @@ class ConfigFile(models.Model):
 
     STATUS_CHOICES = (
         ("正常", "该配置文件正常"),
-        ("未完成", "该配置文件未配置文成"),
+        ("未完成", "该配置文件未配置完成"),
         ("停用", "该配置文件已被停用"),
     )
 
@@ -16,6 +16,8 @@ class ConfigFile(models.Model):
     status = models.CharField("status", max_length=20, choices=STATUS_CHOICES, default="正常")
     contents = models.TextField("contents", default="")
     create_time = models.DateTimeField("create time", default=timezone.now)
+    description = models.CharField("description", max_length=100, default="")
+    path = models.FilePathField("path")
 
     def __str__(self):
         return self.name
@@ -33,6 +35,7 @@ class Agent(models.Model):
     ip_address = models.GenericIPAddressField("ip address", protocol="IPv4", default="127.0.0.1")
     status = models.CharField("status", max_length=20, choices=STATUS_CHOICES, default="未连接")
     configs = models.ManyToManyField('ConfigFile', blank=True)
+    create_time = models.DateTimeField("create time", default=timezone.now)
 
     def __str__(self):
         return self.ip_address
