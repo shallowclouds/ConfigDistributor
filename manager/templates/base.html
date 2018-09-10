@@ -23,11 +23,11 @@
                   <h5 class="card-header">ShortCuts</h5>
                   <div class="card-body">
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><a href="/web/list/">Agent List</a></li>
-                        <li class="list-group-item"><a href="/web/list/add/">Add Agent</a></li>
-                        <li class="list-group-item"><a href="/web/config/">Config List</a></li>
-                        <li class="list-group-item"><a href="/web/config/add/">Add Config</a></li>
-                        <li class="list-group-item"><a href="/web/logout/">Logout</a></li>
+                        <li class="list-group-item"><a href="{% url 'ConfigList' %}">Config File List</a></li>
+                        <li class="list-group-item"><a href="{% url 'ConfigAdd' %}">Add Config File</a></li>
+                        <li class="list-group-item"><a href="{% url 'AgentList' %}">Agent List</a></li>
+                        <li class="list-group-item"><a href="{% url 'AgentAdd' %}">Add Agent</a></li>
+                        <li class="list-group-item"><a href="{% url 'AuthLogout' %}">Logout</a></li>
                     </ul>
                   </div>
                 </div>

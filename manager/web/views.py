@@ -19,7 +19,8 @@ class ConfigListView(View):
     def get(self, request):
         query = models.ConfigFile.objects.all()
         res = serializers.ConfigSerializer(query, many=True)
-        return render(request, "config/list.html", {"sources": {"title": "配置文件列表", "configs": res.data}})
+        res = res.data
+        return render(request, "config/list.html", {"sources": {"title": "配置文件列表", "configs": res}})
 
 
 class ConfigProfileView(View):
@@ -38,7 +39,7 @@ class ConfigAddView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request):
-        pass
+        return render(request, "config/add.html", {"sources": {"title": "添加配置文件"}})
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request):

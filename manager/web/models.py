@@ -17,7 +17,7 @@ class ConfigFile(models.Model):
     contents = models.TextField("contents", default="")
     create_time = models.DateTimeField("create time", default=timezone.now)
     description = models.CharField("description", max_length=100, default="")
-    path = models.FilePathField("path")
+    path = models.FilePathField("path", default="")
 
     def __str__(self):
         return self.name

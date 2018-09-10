@@ -109,5 +109,5 @@ ENV/
 *.log
 /.idea
 db.sqlite3
-migrations/*
-tmp_static/*
+manager/web/migrations
+manager/web/tmp_static
