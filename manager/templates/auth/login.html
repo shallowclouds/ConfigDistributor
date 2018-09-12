@@ -1,14 +1,12 @@
+{% load static %}
 <!doctype html>
 <html lang="en">
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/static/dist/css/bootstrap.min.css">
-
-    <link href="/static/dist/css/sticky-footer.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static "dist/css/bootstrap.min.css" %}">
+    <link rel="stylesheet" href="{% static "dist/css/sticky-footer.css" %}">
 
     <title>Configure Files Distributor-{{ sources.title }}</title>
 </head>
@@ -19,11 +17,11 @@
         <div class="row">
             <span class="col-md-3"></span>
             <div class="col-md-6">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
+                <div class="card">
+                    <div class="card-header">
                         管理平台登录
                     </div>
-                    <div class="panel-body">
+                    <div class="card-body">
                         {% if error %}
                         <div class="alert alert-danger" role="alert">
                             {% for error_i in error %}
@@ -65,8 +63,7 @@
             <span>Web manager written by <a href="mailto:shallowcloud@yeah.net">Yorling</a>.</span>
         </div>
     </footer>
-    <script src="/static/dist/js/jquery-3.3.1.slim.min.js"></script>
-    <script src="/static/dist/js/popper.min.js"></script>
-    <script src="/static/dist/js/bootstrap.min.js"></script>
+    <script src="{% static "dist/js/jquery.min.js" %}"></script>
+    <script src="{% static "dist/js/bootstrap.min.js" %}"></script>
 </body>
 </html>

@@ -17,7 +17,9 @@ class ConfigFile(models.Model):
     contents = models.TextField("contents", default="")
     create_time = models.DateTimeField("create time", default=timezone.now)
     description = models.CharField("description", max_length=100, default="")
-    path = models.FilePathField("path", default="")
+    # path = models.FilePathField("path", default="")
+    path = models.CharField("file path", max_length=300, default="")
+    is_deleted = models.BooleanField("is_deleted", default=False)
 
     def __str__(self):
         return self.name
@@ -36,6 +38,7 @@ class Agent(models.Model):
     status = models.CharField("status", max_length=20, choices=STATUS_CHOICES, default="未连接")
     configs = models.ManyToManyField('ConfigFile', blank=True)
     create_time = models.DateTimeField("create time", default=timezone.now)
+    name = models.CharField("name", max_length=30, default="unamed")
 
     def __str__(self):
         return self.ip_address

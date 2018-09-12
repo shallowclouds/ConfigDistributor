@@ -16,6 +16,7 @@ agent_urls = [
     path('profile/<int:id>/', views.AgentProfileView.as_view(), name="AgentProfile"),
     path('add/', views.AgentAddView.as_view(), name="AgentAdd"),
     path('edit/<int:id>/', views.AgentEditView.as_view(), name="AgentEdit"),
+    path('delete/<int:id>/', views.AgentDeleteView.as_view(), name="AgentDelete"),
     path('addConfig/<int:id>/', views.AgentAddconfigView.as_view(), name="AgentAddconfig"),
 ]
 

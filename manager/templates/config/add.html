@@ -1,1 +1,40 @@
 {% extends "base.html" %}
+
+{% block right %}
+<div class="card">
+    <div class="card-header">
+        Add Config File
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="namew">Name</label>
+                <input type="text" name="name" class="form-control" id="namew" aria-describedby="name" placeholder="name">
+            </div>
+            <div class="form-group">
+                <label for="descriptionw">Description</label>
+                <textarea name="description" class="form-control" id="descriptionw" placeholder="description" rows="5"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="pathw">Path</label>
+                <input type="text" name="path" class="form-control" id="pathw" aria-describedby="path" placeholder="path">
+            </div>
+            <div class="form-group">
+                <label for="inputState">Status</label>
+                <select id="inputState" class="form-control" name="status">
+                    <option selected>未完成</option>
+                    <option>正常</option>
+                    <option>停用</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="contentw">Content</label>
+                <textarea name="content" class="form-control" id="contentw" placeholder="content" rows="20"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+    
+{% endblock %}

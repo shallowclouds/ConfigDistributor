@@ -1,1 +1,38 @@
 {% extends "base.html" %}
+
+{% block right %}
+<div class="card">
+    <div class="card-header">
+        Delete Config '{{ sources.configs.name }}' ?
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete This Config File</button>
+        </form>
+        <table class="table table-striped">
+            <tbody>
+            <tr>
+                <th>id</th>
+                <td>{{ sources.configs.id }}</td>
+            </tr>
+            <tr>
+                <th>name</th>
+                <td>{{ sources.configs.name }}</td>
+            </tr>
+            <tr>
+                <th>description</th>
+                <td>{{ sources.configs.description }}</td>
+            </tr>
+            <tr>
+                <th>path</th>
+                <td>{{ sources.configs.path }}</td>
+            </tr>
+            </tbody>
+        </table>
+        <div>
+                <pre class="prettyprint">{{ sources.configs.contents }}</pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

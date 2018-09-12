@@ -4,12 +4,10 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="/static/dist/css/bootstrap.min.css">
-    <link href="/static/dist/css/sticky-footer.css" rel="stylesheet">
-      <!--<link href="/static/dist/css/diff.css" rel="stylesheet">-->
-
+    {% load static %}
+    <link rel="stylesheet" href="{% static "dist/css/bootstrap.min.css" %}">
+    <!-- <link rel="stylesheet" href="{% static "dist/css/sticky-footer.css" %}"> -->
+    <link rel="stylesheet" href="{% static "code/prettify.css" %}">
 
     <title>Configure Files Distributor-{{ sources.title }}</title>
   </head>
@@ -17,47 +15,21 @@
     <div class="container">
       {% block main %}
         <div class="row">
-        {% block left %}
-            <div class="col-md-3">
-                <div class="card">
-                  <h5 class="card-header">ShortCuts</h5>
-                  <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><a href="{% url 'ConfigList' %}">Config File List</a></li>
-                        <li class="list-group-item"><a href="{% url 'ConfigAdd' %}">Add Config File</a></li>
-                        <li class="list-group-item"><a href="{% url 'AgentList' %}">Agent List</a></li>
-                        <li class="list-group-item"><a href="{% url 'AgentAdd' %}">Add Agent</a></li>
-                        <li class="list-group-item"><a href="{% url 'AuthLogout' %}">Logout</a></li>
-                    </ul>
-                  </div>
-                </div>
-            </div>
-        {% endblock %}
-
-        {% block right %}
-            <div class="col-md-9">
-                <table class="table table-striped">
-                  <thead>
-                    <tr>
-                      <th scope="col">ID</th>
-                      <th scope="col">IP 地址</th>
-                      <th scope="col">Agent 状态</th>
-                      <th scope="col">连接时间</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for i in sources.agents %}
-                    <tr>
-                      <th scope="row"><a href="/web/agent/{{ i.id }}/">{{ i.id }}</th>
-                      <td>{{ i.ip_address }}</td>
-                      <td>{{ i.status }}</td>
-                      <td>*</td>
-                    </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-            </div>
-        {% endblock %}
+          <div class="col-md-3">
+            {% include "shortcuts.html" %}
+          </div>
+          <div class="col-md-9">
+            {% if errors %}
+              {% for error in errors %}
+              <!-- <div class="row"> -->
+                  <div class="alert alert-warning" role="alert">{{ error }}</div>
+              <!-- </div> -->
+              {% endfor %}
+            {% endif %}
+          {% block right %}
+            
+          {% endblock %}
+          </div>
         </div>
       {% endblock %}
     </div>
@@ -67,8 +39,9 @@
         <span>Web manager written by <a href="mailto:shallowcloud@yeah.net">Yorling</a>.</span>
       </div>
     </footer>
-    <script src="/static/dist/js/jquery-3.3.1.slim.min.js"></script>
-    <script src="/static/dist/js/popper.min.js"></script>
-    <script src="/static/dist/js/bootstrap.min.js"></script>
+    <script src="{% static "dist/js/popper.min.js" %}"></script>
+    <script src="{% static "dist/js/jquery.min.js" %}"></script>
+    <script src="{% static "dist/js/bootstrap.min.js" %}"></script>
+    <script src="{% static "code/run_prettify.js" %}"></script>
   </body>
 </html>

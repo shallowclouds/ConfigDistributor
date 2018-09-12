@@ -4,7 +4,7 @@ from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -26,11 +26,11 @@ class ConfigListView(View):
 class ConfigProfileView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
+    def get(self, request, id):
         try:
             query = models.ConfigFile.objects.get(id=id)
         except models.ConfigFile.DoesNotExist:
-            return render(request, "config/profile.html", {"sources": {"title": "配置文件列表-404"},  "errors": [const.CONFIG_NOT_FOUND, ]})
+            return render(request, "base.html", {"sources": {"title": "配置文件列表-404"},  "errors": [const.CONFIG_NOT_FOUND, ]})
         res = serializers.ConfigSerializer(query)
         return render(request, "config/profile.html", {"sources": {"title": "配置文件列表", "configs": res.data}})
 
@@ -43,29 +43,73 @@ class ConfigAddView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request):
-        pass
+        config = models.ConfigFile(
+            name=request.POST["name"],
+            status=request.POST["status"],
+            description=request.POST["description"],
+            path=request.POST["path"],
+            contents=request.POST["content"]
+            )
+        config.save()
+        return redirect("ConfigProfile", config.id)
 
 
 class ConfigEditView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
-        pass
+    def get(self, request, id):
+        try:
+            query = models.ConfigFile.objects.get(id=id)
+        except models.ConfigFile.DoesNotExist:
+            return render(request, "base.html", {"sources": {"title": "配置文件不存在-404"},  "errors": [const.CONFIG_NOT_FOUND, ]})
+        res = serializers.ConfigSerializer(query)
+        return render(request, "config/edit.html", {"sources": {"title": "编辑配置文件", "configs": res.data}})
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id=None):
-        pass
+    def post(self, request, id):
+        try:
+            config = models.ConfigFile.objects.get(id=id)
+        except models.ConfigFile.DoesNotExist:
+            return render(request, "base.html", {
+                "sources": {"title": "配置文件不存在-404"},
+                "errors": [const.CONFIG_NOT_FOUND, ]})
+        config.name = request.POST["name"]
+        config.description = request.POST["description"]
+        config.path = request.POST["path"]
+        config.contents = request.POST["content"]
+        config.status = request.POST["status"]
+        config.save()
+        return redirect("ConfigProfile", id)
 
 
 class ConfigDeleteView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
-        pass
+    def get(self, request, id):
+        try:
+            query = models.ConfigFile.objects.get(id=id)
+        except models.ConfigFile.DoesNotExist:
+            return render(request, "base.html", {
+                "sources": {"title": "配置文件不存在-404"},
+                "errors": [const.CONFIG_NOT_FOUND, ]})
+        res = serializers.ConfigSerializer(query)
+        return render(request, "config/delete.html", {
+            "sources": {
+                "title": "删除配置文件", "configs": res.data
+                }
+                })
+
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id=None):
-        pass
+    def post(self, request, id):
+        try:
+            config = models.ConfigFile.objects.get(id=id)
+        except models.ConfigFile.DoesNotExist:
+            return render(request, "base.html", {
+                "sources": {"title": "配置文件不存在-404"},
+                "errors": [const.CONFIG_NOT_FOUND, ]})
+        config.delete()
+        return redirect("ConfigList")
 
 
 class ConfigDiffView(View):
@@ -79,14 +123,27 @@ class AgentListView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request):
-        pass
+        query = models.Agent.objects.all()
+        res = serializers.AgentSerializer(query, many=True)
+        res = res.data
+        return render(request, "agent/list.html", {
+            "sources": {"title": "服务器列表", "agents": res}})
 
 
 class AgentProfileView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
-        pass
+    def get(self, request, id):
+        try:
+            query = models.Agent.objects.get(id=id)
+        except models.Agent.DoesNotExist:
+            return render(request, "base.html", {
+                "sources": {"title": "服务器-404"},  
+                "errors": [const.AGENT_NOT_FOUND, ]})
+        res = serializers.AgentSerializer(query)
+        return render(request, "agent/profile.html", {"sources": {
+            "title": "服务器列表",
+            "agents": res.data}})
 
 
 class AgentAddView(View):
@@ -97,6 +154,17 @@ class AgentAddView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request):
+        pass
+
+
+class AgentDeleteView(View):
+
+    @method_decorator(login_required(login_url="AuthLogin"))
+    def get(self, request, id):
+        pass
+
+    @method_decorator(login_required(login_url="AuthLogin"))
+    def post(self, request, id):
         pass
 
 
@@ -133,7 +201,10 @@ class AuthLoginView(View):
             return HttpResponseRedirect(reverse("ConfigList"))
 
         if "username" in request.POST and "password" in request.POST:
-            auth_res = auth.authenticate(request, username=request.POST["username"], password=request.POST["password"])
+            auth_res = auth.authenticate(
+                request,
+                username=request.POST["username"],
+                password=request.POST["password"])
             if auth_res and auth_res.is_active:
                 auth.login(request, auth_res)
                 if "next" in request.GET:
@@ -141,9 +212,11 @@ class AuthLoginView(View):
                 else:
                     return HttpResponseRedirect(reverse("ConfigList"))
             else:
-                return render(request, "auth/login.html", {"error": [const.LOGIN_ERROR_TIP]})
+                return render(request, "auth/login.html", {
+                    "error": [const.LOGIN_ERROR_TIP]})
         else:
-            return render(request, "auth/login.html", {"error": [const.LOGIN_ERROR_EMPTY_TIP]})
+            return render(request, "auth/login.html", {
+                "error": [const.LOGIN_ERROR_EMPTY_TIP]})
 
 
 class AuthLogoutView(View):

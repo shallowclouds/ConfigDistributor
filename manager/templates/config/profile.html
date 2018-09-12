@@ -1,1 +1,60 @@
 {% extends "base.html" %}
+
+{% block right %}
+
+<div class="card">
+    <div class="card-header">
+        Profile:
+    </div>
+    <div class="card-body">
+            <table class="table table-striped">
+                <tbody>
+                <tr>
+                    <th>id</th>
+                    <td>{{ sources.configs.id }}</td>
+                </tr>
+                <tr>
+                    <th>name</th>
+                    <td>{{ sources.configs.name }}</td>
+                </tr>
+                <tr>
+                    <th>status</th>
+                    <td>{{ sources.configs.status }}</td>
+                </tr>
+                <tr>
+                    <th>create_time</th>
+                    <td>{{ sources.configs.create_time }}</td>
+                </tr>
+                <tr>
+                    <th>description</th>
+                    <td>{{ sources.configs.description }}</td>
+                </tr>
+                <tr>
+                    <th>path</th>
+                    <td>{{ sources.configs.path }}</td>
+                </tr>
+                <!-- <tr>
+                    <th>id</th>
+                    <td>{{ sources.configs.id }}</td>
+                </tr> -->
+                </tbody>
+            </table>
+            <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                <div class="btn-group" role="group">
+                    <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Action
+                    </button>
+                    <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                    <a class="dropdown-item" href="{% url 'ConfigEdit' sources.configs.id %}">Edit</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'ConfigDelete' sources.configs.id %}">Delete</a>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <pre class="prettyprint">{{ sources.configs.contents }}</pre>
+            </div>
+    </div>
+</div>
+
+{% endblock %}

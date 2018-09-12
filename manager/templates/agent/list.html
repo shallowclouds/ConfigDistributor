@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block right %}
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">name</th>
+            <th scope="col">status</th>
+            <th scope="col">ip_address</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for i in sources.agents %}
+        <tr>
+            <th scope="row"><a href="{% url 'AgentProfile' i.id  %}">{{ i.id }}</th>
+            <td><a href="{% url 'AgentProfile' i.id  %}">{{ i.name }}</a></td>
+            <td>{{ i.status }}</td>
+            <td>{{ i.ip_address }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
