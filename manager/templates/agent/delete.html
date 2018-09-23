@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block right %}
+<div class="card">
+    <div class="card-header">
+        Confirm to delete server '{{ sources.agents.name }}' ?
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete This Server</button>
+        </form>
+        <table class="table table-striped">
+            <tbody>
+            <tr>
+                <th>id</th>
+                <td>{{ sources.agents.id }}</td>
+            </tr>
+            <tr>
+                <th>name</th>
+                <td>{{ sources.agents.name }}</td>
+            </tr>
+            <tr>
+                <th>ip address</th>
+                <td>{{ sources.agents.ip_address }}</td>
+            </tr>
+            <tr>
+                <th>status</th>
+                <td>{{ sources.agents.status }}</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

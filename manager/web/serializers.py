@@ -13,7 +13,7 @@ class ConfigSerializerForAgent(serializers.ModelSerializer):
 
     class Meta:
         model = ConfigFile
-        fields = ("name", "id")
+        fields = ("name", "id", "path")
 
 
 class AgentSerializer(serializers.ModelSerializer):

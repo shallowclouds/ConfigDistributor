@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block right %}
+<div class="card">
+    <div class="card-header">
+        Add Agent
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="namew">Name</label>
+                <input type="text" name="name" class="form-control" id="namew" aria-describedby="name" placeholder="name">
+            </div>
+            <div class="form-group">
+                <label for="ip_addressw">ip_address</label>
+                <input type="text" name="ip_address" class="form-control" id="ip_addressw" aria-describedby="ip address" placeholder="127.0.0.1">
+            </div>
+            <div class="form-group">
+                <label for="inputState">Status</label>
+                <select id="inputState" class="form-control" name="status">
+                    <option selected>未连接</option>
+                    <option>连接断开</option>
+                    <option>正常</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="configw">Add configs for agent</label>
+                <select multiple class="form-control" id="configw" name="configs[]">
+                    {% for config in sources.configs %}
+                        <option value="{{ config.id }}">{{ config.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+    
+{% endblock %}

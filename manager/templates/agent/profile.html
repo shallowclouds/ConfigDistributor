@@ -8,6 +8,12 @@
     </div>
     <div class="card-body">
             <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Info</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
                 <tbody>
                 <tr>
                     <th>id</th>
@@ -29,16 +35,24 @@
                     <th>ip address</th>
                     <td>{{ sources.agents.ip_address }}</td>
                 </tr>
-                <!-- <tr>
-                    <th>path</th>
-                    <td>{{ sources.configs.path }}</td>
-                </tr> -->
-                <!-- <tr>
-                    <th>id</th>
-                    <td>{{ sources.configs.id }}</td>
-                </tr> -->
                 </tbody>
             </table>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>name</th>
+                            <th>path</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for config in sources.agents.configs %}         
+                            <tr>
+                                <th><a href="{% url "ConfigProfile" config.id %}">{{ config.name }}</a></th>
+                                <th>{{ config.path }}</th>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
                 <div class="btn-group" role="group">
                     <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

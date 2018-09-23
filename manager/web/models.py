@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 
 
 class ConfigFile(models.Model):
@@ -13,7 +13,12 @@ class ConfigFile(models.Model):
 
     id = models.AutoField("ID", primary_key=True)
     name = models.CharField("name", max_length=30, default="Unnamed")
-    status = models.CharField("status", max_length=20, choices=STATUS_CHOICES, default="正常")
+    status = models.CharField(
+        "status",
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="正常"
+        )
     contents = models.TextField("contents", default="")
     create_time = models.DateTimeField("create time", default=timezone.now)
     description = models.CharField("description", max_length=100, default="")
@@ -34,8 +39,17 @@ class Agent(models.Model):
     )
 
     id = models.AutoField("ID", primary_key=True)
-    ip_address = models.GenericIPAddressField("ip address", protocol="IPv4", default="127.0.0.1")
-    status = models.CharField("status", max_length=20, choices=STATUS_CHOICES, default="未连接")
+    ip_address = models.GenericIPAddressField(
+        "ip address",
+        protocol="IPv4",
+        default="127.0.0.1"
+        )
+    status = models.CharField(
+        "status",
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="未连接"
+        )
     configs = models.ManyToManyField('ConfigFile', blank=True)
     create_time = models.DateTimeField("create time", default=timezone.now)
     name = models.CharField("name", max_length=30, default="unamed")

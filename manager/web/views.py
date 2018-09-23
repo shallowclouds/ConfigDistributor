@@ -1,10 +1,10 @@
-import json
+# import json
 
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render, redirect
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -20,7 +20,11 @@ class ConfigListView(View):
         query = models.ConfigFile.objects.all()
         res = serializers.ConfigSerializer(query, many=True)
         res = res.data
-        return render(request, "config/list.html", {"sources": {"title": "配置文件列表", "configs": res}})
+        return render(
+            request,
+            "config/list.html",
+            {"sources": {"title": "配置文件列表", "configs": res}}
+            )
 
 
 class ConfigProfileView(View):
@@ -30,16 +34,27 @@ class ConfigProfileView(View):
         try:
             query = models.ConfigFile.objects.get(id=id)
         except models.ConfigFile.DoesNotExist:
-            return render(request, "base.html", {"sources": {"title": "配置文件列表-404"},  "errors": [const.CONFIG_NOT_FOUND, ]})
+            return render(request, "base.html", {
+                "sources": {"title": "配置文件列表-404"},
+                "errors": [const.CONFIG_NOT_FOUND, ]
+                })
         res = serializers.ConfigSerializer(query)
-        return render(request, "config/profile.html", {"sources": {"title": "配置文件列表", "configs": res.data}})
+        return render(
+            request,
+            "config/profile.html",
+            {"sources": {"title": "配置文件列表", "configs": res.data}}
+            )
 
 
 class ConfigAddView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request):
-        return render(request, "config/add.html", {"sources": {"title": "添加配置文件"}})
+        return render(
+            request,
+            "config/add.html",
+            {"sources": {"title": "添加配置文件"}}
+            )
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request):
@@ -61,9 +76,16 @@ class ConfigEditView(View):
         try:
             query = models.ConfigFile.objects.get(id=id)
         except models.ConfigFile.DoesNotExist:
-            return render(request, "base.html", {"sources": {"title": "配置文件不存在-404"},  "errors": [const.CONFIG_NOT_FOUND, ]})
+            return render(request, "base.html", {
+                "sources": {"title": "配置文件不存在-404"},
+                "errors": [const.CONFIG_NOT_FOUND, ]
+                })
         res = serializers.ConfigSerializer(query)
-        return render(request, "config/edit.html", {"sources": {"title": "编辑配置文件", "configs": res.data}})
+        return render(
+            request,
+            "config/edit.html",
+            {"sources": {"title": "编辑配置文件", "configs": res.data}}
+            )
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request, id):
@@ -98,7 +120,6 @@ class ConfigDeleteView(View):
                 "title": "删除配置文件", "configs": res.data
                 }
                 })
-
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request, id):
@@ -138,7 +159,7 @@ class AgentProfileView(View):
             query = models.Agent.objects.get(id=id)
         except models.Agent.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "服务器-404"},  
+                "sources": {"title": "服务器-404"},
                 "errors": [const.AGENT_NOT_FOUND, ]})
         res = serializers.AgentSerializer(query)
         return render(request, "agent/profile.html", {"sources": {
@@ -150,22 +171,60 @@ class AgentAddView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request):
-        pass
+        query = models.ConfigFile.objects.all()
+        res = serializers.ConfigSerializerForAgent(query, many=True)
+        res = res.data
+        return render(request, "agent/add.html", {
+            "sources": {"title": "添加服务器", "configs": res}
+            })
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request):
-        pass
+        print(request.POST.getlist("configs[]"))
+        agent = models.Agent(
+            name=request.POST["name"],
+            status=request.POST["status"],
+            ip_address=request.POST["ip_address"],
+            )
+        agent.save()
+        configs = request.POST.getlist("configs[]")
+        for id in configs:
+            try:
+                config = models.ConfigFile.objects.get(id=id)
+            except models.ConfigFile.DoesNotExist:
+                continue
+            agent.configs.add(config)
+        agent.save()
+        return redirect("AgentProfile", agent.id)
 
 
 class AgentDeleteView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request, id):
-        pass
+        try:
+            query = models.Agent.objects.get(id=id)
+        except models.Agent.DoesNotExist:
+            return render(request, "base.html", {
+                "sources": {"title": "配置文件不存在-404"},
+                "errors": [const.AGENT_NOT_FOUND, ]})
+        res = serializers.AgentSerializer(query)
+        return render(request, "agent/delete.html", {
+            "sources": {
+                "title": "删除服务器", "agents": res.data
+                }
+                })
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request, id):
-        pass
+        try:
+            agent = models.Agent.objects.get(id=id)
+        except models.Agent.DoesNotExist:
+            return render(request, "base.html", {
+                "sources": {"title": "配置文件不存在-404"},
+                "errors": [const.AGENT_NOT_FOUND, ]})
+        agent.delete()
+        return redirect("AgentList")
 
 
 class AgentEditView(View):

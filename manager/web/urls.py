@@ -1,23 +1,47 @@
 from django.urls import path, include
 from . import views
-from django.views.generic import TemplateView
+# from django.views.generic import TemplateView
 
 config_urls = [
     path('', views.ConfigListView.as_view(), name="ConfigList"),
-    path('profile/<int:id>/', views.ConfigProfileView.as_view(), name="ConfigProfile"),
+    path(
+        'profile/<int:id>/',
+        views.ConfigProfileView.as_view(),
+        name="ConfigProfile"
+        ),
     path('edit/<int:id>/', views.ConfigEditView.as_view(), name="ConfigEdit"),
-    path('delete/<int:id>/', views.ConfigDeleteView.as_view(), name="ConfigDelete"),
+    path(
+        'delete/<int:id>/',
+        views.ConfigDeleteView.as_view(),
+        name="ConfigDelete"
+        ),
     path('add/', views.ConfigAddView.as_view(), name="ConfigAdd"),
-    path('diff/<int:id1>/<int:id2>/', views.ConfigDiffView.as_view(), name="ConfigDiff"),
+    path(
+        'diff/<int:id1>/<int:id2>/',
+        views.ConfigDiffView.as_view(),
+        name="ConfigDiff"
+        ),
 ]
 
 agent_urls = [
     path('', views.AgentListView.as_view(), name="AgentList"),
-    path('profile/<int:id>/', views.AgentProfileView.as_view(), name="AgentProfile"),
+    path(
+        'profile/<int:id>/',
+        views.AgentProfileView.as_view(),
+        name="AgentProfile"
+        ),
     path('add/', views.AgentAddView.as_view(), name="AgentAdd"),
     path('edit/<int:id>/', views.AgentEditView.as_view(), name="AgentEdit"),
-    path('delete/<int:id>/', views.AgentDeleteView.as_view(), name="AgentDelete"),
-    path('addConfig/<int:id>/', views.AgentAddconfigView.as_view(), name="AgentAddconfig"),
+    path(
+        'delete/<int:id>/',
+        views.AgentDeleteView.as_view(),
+        name="AgentDelete"
+        ),
+    path(
+        'addConfig/<int:id>/',
+        views.AgentAddconfigView.as_view(),
+        name="AgentAddconfig"
+        ),
 ]
 
 auth_urls = [
