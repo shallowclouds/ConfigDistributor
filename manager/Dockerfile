@@ -1,8 +1,9 @@
 FROM ubuntu:16.04
 MAINTAINER Yorling "i@yorling.com"
 
-ADD . /opt/config_distributor
+ADD . /opt/app
 COPY sources.list /etc/apt/sources.list
+COPY supervisor-app.conf /etc/supervisor/conf.d/
 RUN apt-get update && \
     apt-get install -y \
     python3 \
@@ -10,10 +11,13 @@ RUN apt-get update && \
     python3-setuptools \
     nginx \
     supervisor
-WORKDIR /opt/config_distributor
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+WORKDIR /opt/app
 RUN pip3 install -r requirements.txt -i https://pypi.doubanio.com/simple/
-RUN cp manager.conf /etc/nginx/sites-enabled/
-RUN python3 manage.py collectstatics
-RUN service nginx start
+COPY manager.conf /etc/nginx/sites-enabled/default
+RUN python3 manage.py collectstatic --noinput && python3 manage.py makemigrations --noinput && python3 manage.py migrate --noinput
+
 EXPOSE 80
-CMD ["uwsgi", "--ini", "uwsgi.ini"]
+
+CMD ["supervisord", "-n"]
+

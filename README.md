@@ -12,7 +12,12 @@ a system to distribute configure files using Django and python.
    * python 3.5+
    * Django库
 2. 部署及使用说明
-   * 使用 Docker 部署(working)
+   * 使用 Docker 部署
+   ```bash
+    $ cd /path/to/src/manager
+    $ sudo docker build -t config_distributor .
+    $ sudo docker run -d --name config -p 0.0.0.0:80:80 config_distributor
+   ```
    * 直接部署
 3. 注意事项
    * 使用前请先编辑配置好配置文件
@@ -31,9 +36,9 @@ a system to distribute configure files using Django and python.
    - 使用 Docker 部署
     - 使用 Dockerfile 构建(working)
     ```bash
-    cd path/to/src/manager
-    docker build -t yorling/config:latest .
-    docker run -p 80:80 yorling/config:latest -d 
+    $ cd path/to/src/manager
+    $ docker build -t yorling/config:latest .
+    $ docker run -p 0.0.0.0:80:80 yorling/config:latest -d 
     ```
    - 直接部署
 3. 注意事项
