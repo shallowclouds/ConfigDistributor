@@ -180,7 +180,7 @@ class AgentAddView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request):
-        print(request.POST.getlist("configs[]"))
+        # print(request.POST.getlist("configs[]"))
         agent = models.Agent(
             name=request.POST["name"],
             status=request.POST["status"],
@@ -221,8 +221,9 @@ class AgentDeleteView(View):
             agent = models.Agent.objects.get(id=id)
         except models.Agent.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "配置文件不存在-404"},
-                "errors": [const.AGENT_NOT_FOUND, ]})
+                "sources": {"title": "该服务器不存在-404"},
+                "errors": [const.AGENT_NOT_FOUND, ]
+            })
         agent.delete()
         return redirect("AgentList")
 
@@ -230,23 +231,48 @@ class AgentDeleteView(View):
 class AgentEditView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
-        pass
+    def get(self, request, id):
+        config = models.ConfigFile.objects.all()
+        configs = serializers.ConfigSerializerForAgent(config, many=True)
+        try:
+            agent = models.Agent.objects.get(id=id)
+        except models.Agent.DoesNotExist:
+            return render(request, "base.html", {
+                "sources": {"title": "该服务器不存在-404"},
+                "errors": [const.AGENT_NOT_FOUND, ]
+            })
+        res = serializers.AgentSerializer(agent)
+        return render(request, "agent/edit.html", {
+            "sources": {
+                "title": "编辑服务器信息",
+                "agents": res.data,
+                "configs": configs.data
+                },
+        })
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id=None):
-        pass
-
-
-class AgentAddconfigView(View):
-
-    @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
-        pass
-
-    @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id=None):
-        pass
+    def post(self, request, id):
+        new_configs = request.POST.getlist("configs[]")
+        try:
+            agent = models.Agent.objects.get(id=id)
+        except models.Agent.DoesNotExist:
+            return render(request, "base.html", {
+                "sources": {"title": "该服务器不存在-404"},
+                "errors": [const.AGENT_NOT_FOUND, ]
+            })
+        agent.name = request.POST["name"]
+        agent.ip_address = request.POST["ip_address"]
+        agent.status = request.POST["status"]
+        agent.save()
+        new_config_list = list()
+        for id in new_configs:
+            try:
+                config = models.ConfigFile.objects.get(id=id)
+            except models.ConfigFile.DoesNotExist:
+                continue
+            new_config_list.append(config)
+        agent.configs.set(new_config_list)
+        return redirect("AgentProfile", agent.id)
 
 
 class AuthLoginView(View):

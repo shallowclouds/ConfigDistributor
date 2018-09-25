@@ -37,11 +37,6 @@ agent_urls = [
         views.AgentDeleteView.as_view(),
         name="AgentDelete"
         ),
-    path(
-        'addConfig/<int:id>/',
-        views.AgentAddconfigView.as_view(),
-        name="AgentAddconfig"
-        ),
 ]
 
 auth_urls = [

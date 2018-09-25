@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block right %}
+<div class="card">
+    <div class="card-header">
+        Edit Agent
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="namew">Name</label>
+                <input type="text" name="name" class="form-control" id="namew" aria-describedby="name" placeholder="name" value="{{ sources.agents.name }}">
+            </div>
+            <div class="form-group">
+                <label for="ip_addressw">ip_address</label>
+                <input type="text" name="ip_address" class="form-control" id="ip_addressw" aria-describedby="ip address" placeholder="127.0.0.1" value="{{ sources.agents.ip_address }}">
+            </div>
+            <div class="form-group">
+                <label for="inputState">Status</label>
+                <select id="inputState" class="form-control" name="status">
+                    <option {% if sources.agents.status == "未连接" %} selected {% endif %}>未连接</option>
+                    <option {% if sources.agents.status == "连接断开" %} selected {% endif %}>连接断开</option>
+                    <option {% if sources.agents.status == "正常" %} selected {% endif %}>正常</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="configw">Add configs for agent(hold ctrl to select multiple configs)</label>
+                <select multiple class="form-control" id="configw" name="configs[]">
+                    {% for config in sources.configs %}
+                        <option value="{{ config.id }}" {% if config in sources.agents.configs %}selected{% endif %}>{{ config.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+    
+{% endblock %}

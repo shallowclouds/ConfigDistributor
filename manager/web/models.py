@@ -6,9 +6,9 @@ from django.utils import timezone
 class ConfigFile(models.Model):
 
     STATUS_CHOICES = (
-        ("正常", "该配置文件正常"),
-        ("未完成", "该配置文件未配置完成"),
-        ("停用", "该配置文件已被停用"),
+        ("正常", "正常"),
+        ("未完成", "未完成"),
+        ("停用", "停用"),
     )
 
     id = models.AutoField("ID", primary_key=True)
@@ -33,9 +33,9 @@ class ConfigFile(models.Model):
 class Agent(models.Model):
 
     STATUS_CHOICES = (
-        ("正常", "该节点与服务器连接正常"),
-        ("连接断开", "该节点与服务器连接已断开"),
-        ("未连接", "该节点未与服务器建立连接"),
+        ("正常", "正常"),
+        ("连接断开", "连接断开"),
+        ("未连接", "未连接"),
     )
 
     id = models.AutoField("ID", primary_key=True)

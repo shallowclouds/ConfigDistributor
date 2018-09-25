@@ -10,17 +10,25 @@ a system to distribute configure files using Django and python.
 1. 运行环境
    * Linux 32 / 64
    * python 3.5+
-   * Django库
+   * nginx
+   * docker(如果使用 docker 部署的话)
 2. 部署及使用说明
-   * 使用 Docker 部署
+   * 使用 Docker 部署（推荐）
    ```bash
     $ cd /path/to/src/manager
     $ sudo docker build -t config_distributor .
     $ sudo docker run -d --name config -p 0.0.0.0:80:80 config_distributor
    ```
-   * 直接部署
+   * 手动部署
+       1. 进入到源码目录，执行 `pip3 install -r requirements.txt`来安装依赖的 python 包，此前请自行安装 nginx 、python3、pip3 。
+       2. 执行 `python3 manage.py collectstatic` 来将静态资源文件复制到相应地方，执行 `python3 manage.py makemigrations` 以及 `python3 manage.py migrate` 来迁移数据库。
+       3. 执行 `python3 manage.py createsuperuser` ，来生成初始超级管理员账户。
+       4. 将 `uwsgi.ini` 中的 `chdir` 、`socket` 、`daemonize` 项修改为源文件所在目录，执行 `uwsgi --ini /path/to/src/manager/uwsgi.ini` 启动uwsgi，
+       5. 复制`manager.conf` 到 nginx 的配置文件目录 `/etc/nginx/sites-enabled` （默认任何域名都可访问，如需修改域名或者需要 ssl ，请自行修改 `manager.conf` ；执行 `nginx -t` 检查配置文件是否有误，无误后执行 `sudo service nginx reload` 重新加载配置文件使其生效。
+       6. 检查网站是否正常
 3. 注意事项
-   * 使用前请先编辑配置好配置文件
+
+   * 使用前请先编辑配置好配置文件，使配置项对应到源文件所在目录。
 
 ### 服务器端(/server)
 
@@ -31,16 +39,8 @@ a system to distribute configure files using Django and python.
 1. 运行环境
    - Linux 32/64
    - python 3.5 +
-   - python 库 cryptography
 2. 部署及使用说明
-   - 使用 Docker 部署
-    - 使用 Dockerfile 构建(working)
-    ```bash
-    $ cd path/to/src/manager
-    $ docker build -t yorling/config:latest .
-    $ docker run -p 0.0.0.0:80:80 yorling/config:latest -d 
-    ```
-   - 直接部署
+   * 此部分将和 manager 部分一起部署，参见前述。
 3. 注意事项
    - 使用前请先编辑配置好配置文件
 4. 单元测试
