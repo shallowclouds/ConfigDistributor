@@ -103,6 +103,69 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# logger settings
+# info log save to log/web_info.log, slice every day.
+# error log save to log/web_error.log, slice if log larger than 50 mega bytes.
+
+BASE_LOG_DIR = os.path.join(BASE_DIR, "log")
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '[%(asctime)s][%(levelname)s][%(filename)s:%(lineno)d]'
+            '[%(message)s]',
+        },
+        'simple': {
+            'format': '[%(asctime)s][%(message)s]',
+        },
+    },
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'normal': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(BASE_LOG_DIR, "web_info.log"),
+            'when': 'D',
+            'formatter': 'standard',
+            'encoding': 'utf-8',
+        },
+        'error': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_LOG_DIR, "web_err.log"),
+            'maxBytes': 1024 * 1024 * 5,
+            'formatter': 'standard',
+            'encoding': 'utf-8',
+        },
+        'collect': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_LOG_DIR, "web_collect.log"),
+            'maxBytes': 1024 * 1024 * 5,
+            'formatter': 'standard',
+            'encoding': 'utf-8',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'normal', 'error', 'collect'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/

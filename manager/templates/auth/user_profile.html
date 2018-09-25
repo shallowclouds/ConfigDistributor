@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block right %}
+<div class="card">
+        <div class="card-header">
+            User Profile
+        </div>
+        <div class="card-body">
+            <form method="POST" action={% url 'AuthUserById' sources.users.id %}>
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="namew">username</label>
+                    <input type="text" name="username" class="form-control" id="namew" aria-describedby="name" placeholder="name" value="{{ sources.users.username }}">
+                </div>
+                <div class="form-group">
+                    <label for="emailw">email</label>
+                    <input type="email" name="email" class="form-control" id="emailw" aria-describedby="email" placeholder="email" value="{{ sources.users.email }}">
+                </div>
+                <div class="form-group">
+                    <label for="passwordw">password</label>
+                    <input type="password" name="password" class="form-control" id="passwordw" aria-describedby="password" placeholder="password">
+                </div>
+                <button type="submit" class="btn btn-primary">Change</button>
+                <a class="btn btn-primary" href="{% url 'AuthUserDelete' sources.users.id %}" role="button">删除</a>
+            </form>
+        </div>
+    </div>
+    
+{% endblock %}

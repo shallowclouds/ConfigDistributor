@@ -15,7 +15,9 @@ RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 WORKDIR /opt/app
 RUN pip3 install -r requirements.txt -i https://pypi.doubanio.com/simple/
 COPY manager.conf /etc/nginx/sites-enabled/default
-RUN python3 manage.py collectstatic --noinput && python3 manage.py makemigrations --noinput && python3 manage.py migrate --noinput
+RUN python3 manager/manage.py collectstatic --noinput && \
+    python3 manager/manage.py makemigrations --noinput && \
+    python3 manager/manage.py migrate --noinput
 
 EXPOSE 80
 

@@ -1,6 +1,6 @@
 from django.urls import path, include
 from . import views
-# from django.views.generic import TemplateView
+from django.views.generic import TemplateView
 
 config_urls = [
     path('', views.ConfigListView.as_view(), name="ConfigList"),
@@ -42,6 +42,18 @@ agent_urls = [
 auth_urls = [
     path('login/', views.AuthLoginView.as_view(), name="AuthLogin"),
     path('logout/', views.AuthLogoutView.as_view(), name="AuthLogout"),
+    path('user/', views.AuthUserView.as_view(), name="AuthUser"),
+    path('user/<int:id>/', views.AuthUserView.as_view(), name="AuthUserById"),
+    path(
+        'user/add/',
+        TemplateView.as_view(template_name="auth/user_add.html"),
+        name="AuthUserAdd"
+        ),
+    path(
+        'user/delete/<int:id>/',
+        views.AuthUserDeleteView,
+        name="AuthUserDelete",
+        ),
 ]
 
 push_urls = [

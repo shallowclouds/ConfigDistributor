@@ -53,7 +53,6 @@ a system to distribute configure files using Django and python.
 1. 运行环境
    - Linux 32/64
    - python 3.5 +
-   - python cryptography
 2. 部署及使用说明
    - TODO
 

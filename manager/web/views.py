@@ -2,7 +2,7 @@
 
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
-# from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -310,6 +310,73 @@ class AuthLogoutView(View):
     def get(self, request):
         auth.logout(request)
         return HttpResponseRedirect(reverse("AuthLogin"))
+
+
+class AuthUserView(View):
+
+    @method_decorator(login_required(login_url="AuthLogin"))
+    def get(self, request, id=None):
+        ctx = const.CONTEXT_ORIGIN
+
+        if id is None:
+            users = User.objects.all()
+            users_list = serializers.UserSerializer(users, many=True)
+            ctx["sources"] = {
+                "title": "管理员列表",
+                "users": users_list.data,
+            }
+            return render(request, "auth/user_list.html", ctx)
+
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            ctx["sources"]["title"] = "用户不存在-404"
+            ctx["errors"] = [const.USER_NOT_FOUND, ]
+            return render(request, "base.html", ctx)
+        users = serializers.UserSerializer(user)
+        ctx["sources"] = {
+            "title": "用户信息",
+            "users": users.data,
+        }
+        return render(request, "auth/user_profile.html", ctx)
+
+    @method_decorator(login_required(login_url="AuthLogin"))
+    def post(self, request, id=None):
+        if id is None:
+            # add user
+            new_user = User.objects.create_superuser(
+                request.POST["username"],
+                request.POST["email"],
+                request.POST["password"]
+                )
+            return redirect("AuthUserById", new_user.id)
+
+        ctx = const.CONTEXT_ORIGIN
+        try:
+            user = User.objects.get(id=id)
+        except User.DoesNotExist:
+            ctx["sources"]["title"] = "用户不存在-404"
+            ctx["errors"] = [const.USER_NOT_FOUND, ]
+            return render(request, "base.html", ctx)
+        user.username = request.POST["username"]
+        user.email = request.POST["email"]
+        if request.POST["password"] != "":
+            user.set_password(request.POST["password"])
+        user.save()
+        return redirect("AuthUserById", user.id)
+
+
+@login_required(login_url="AuthLogin")
+def AuthUserDeleteView(request, id):
+    ctx = const.CONTEXT_ORIGIN
+    try:
+        user = User.objects.get(id=id)
+    except User.DoesNotExist:
+        ctx["sources"]["title"] = "用户不存在-404"
+        ctx["errors"] = [const.USER_NOT_FOUND, ]
+        return render(request, "base.html", ctx)
+    user.delete()
+    return redirect("AuthUser")
 
 
 class PushView(View):
