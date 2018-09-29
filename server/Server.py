@@ -1,10 +1,3 @@
-import functools
-import time
-
-from server import WebHandlers
-from server.utils import DataPacking
-from server.utils import Logger
-
 # If DEBUG == True, Server will output some debug information.
 DEBUG_ = True
 
@@ -39,5 +32,18 @@ def main():
 
 
 if __name__ == '__main__':
+    import sys
+    import os
+
+    server_path = os.path.dirname(os.path.realpath(__file__))
+    project_path = os.path.join(os.path.sep, *server_path.split(os.sep)[0:-1])
+    sys.path.append(project_path)
+
+    import functools
+    import time
+    from server import WebHandlers
+    from server.utils import DataPacking
+    from server.utils import Logger
+
     Logger.set_debug(DEBUG_)
     main()

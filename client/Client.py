@@ -1,8 +1,5 @@
 import asyncio
 
-import server.utils.DataPacking as DataPacking
-import server.utils.Logger as Logger
-
 key_ = b'\x0c@\xf0\x0f +\xd1g\x84\xf1#Z\xc3\xe4\xabX|\xe7\xa4\x00\x94\xc5{\x0eS\x8e\x1f\x1e\x07\xd0eh'
 
 
@@ -78,4 +75,14 @@ def main():
 
 
 if __name__ == '__main__':
+    import sys
+    import os
+
+    server_path = os.path.dirname(os.path.realpath(__file__))
+    project_path = os.path.join(os.path.sep, *server_path.split(os.sep)[0:-1])
+    sys.path.append(project_path)
+
+    import server.utils.DataPacking as DataPacking
+    import server.utils.Logger as Logger
+
     main()
