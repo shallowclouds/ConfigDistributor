@@ -78,10 +78,8 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
     """
     try:
         async with StreamHandlers(addr, attrs['timeout'], loop, key) as handler:
-            if attrs['method'] == 'send':
-                attrs['file-content-b64'] = DataPacking.file_to_b64str(attrs['local-path'])
+            if attrs['type'] == 'POST':
                 Logger.info(attrs, level=Logger.DEBUG)
-
                 handler.send_attrs(attrs)
 
                 attr_recv = await handler.recv_attrs()
@@ -90,7 +88,7 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
                 else:
                     return RetObj(addr, False, attr_recv['exc_type'], attr_recv['exc_val'])
 
-            elif attrs['method'] == 'get':
+            elif attrs['type'] == 'GET':
                 handler.send_attrs(attrs)
                 attr_recv = await handler.recv_attrs()
                 if attr_recv['result']:
@@ -99,7 +97,7 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
                 else:
                     return RetObj(addr, False, attr_recv['exc_type'], attr_recv['exc_val'])
 
-            elif attrs['method'] == 'check_conn':
+            elif attrs['type'] == 'TEST':
                 handler.send_attrs(attrs)
                 start = time.time()
                 attr_recv = await handler.recv_attrs()
@@ -127,7 +125,7 @@ def subprocess_routine(attrs: dict, client_list_slice: list, key: bytes):
 
     loop = asyncio.get_event_loop()
 
-    fs = [do_method(attrs, client_list_slice[i], loop, key) for i in range(0, len(client_list_slice))]
+    fs = [do_method(attrs, client_list_slice[i]["ip_address"], loop, key) for i in range(0, len(client_list_slice))]
 
     ret = {}
     done, _ = loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.ALL_COMPLETED))

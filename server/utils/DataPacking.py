@@ -10,6 +10,7 @@ from Crypto.Random import get_random_bytes
 def dict_encrypt(plain_attr: dict, key: bytes) -> bytes:
     cipher = ChaCha20.new(key=key)
     json_attr = json.dumps(plain_attr).encode()
+    print(json_attr)
     encrypted_data_bytes = cipher.encrypt(json_attr)
 
     nonce = base64.b64encode(cipher.nonce).decode()
