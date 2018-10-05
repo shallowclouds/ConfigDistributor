@@ -135,7 +135,7 @@ LOGGING = {
         'normal': {
             'level': 'INFO',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': os.path.join(BASE_LOG_DIR, "web_info.log"),
+            'filename': os.path.join(BASE_LOG_DIR, "info.log"),
             'when': 'D',
             'formatter': 'standard',
             'encoding': 'utf-8',
@@ -143,7 +143,7 @@ LOGGING = {
         'error': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_LOG_DIR, "web_err.log"),
+            'filename': os.path.join(BASE_LOG_DIR, "error.log"),
             'maxBytes': 1024 * 1024 * 5,
             'formatter': 'standard',
             'encoding': 'utf-8',
@@ -151,7 +151,7 @@ LOGGING = {
         'collect': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_LOG_DIR, "web_collect.log"),
+            'filename': os.path.join(BASE_LOG_DIR, "collect.log"),
             'maxBytes': 1024 * 1024 * 5,
             'formatter': 'standard',
             'encoding': 'utf-8',
@@ -193,3 +193,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR + "/static",
 ]
+
+# redis server configuration
+REDIS_HOST = "127.0.0.1"
+REDIS_PORT = 6379

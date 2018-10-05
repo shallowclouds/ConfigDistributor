@@ -1,4 +1,4 @@
-# import json
+import json
 
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
@@ -11,6 +11,9 @@ from django.views import View
 from manager import const
 
 from . import models, serializers
+from . import msgq
+
+msgqs = msgq.MessageQ()
 
 
 class ConfigListView(View):
@@ -383,3 +386,54 @@ class PushView(View):
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request, id=None):
         pass
+
+
+class PullView(View):
+    @method_decorator(login_required(login_url="AuthLogin"))
+    def get(self, request, id=None):
+        ctx = const.CONTEXT_ORIGIN
+        try:
+            agent = models.Agent.objects.all().get(id=id)
+        except models.Agent.DoesNotExist:
+            ctx["sources"]["title"] = "服务器不存在"
+            ctx["errors"] = [const.AGENT_NOT_FOUND]
+            return (request, "base.html", ctx)
+        task = dict()
+        task["type"] = "GET"
+        task["client_list"] = [{
+            "id": agent.id,
+            "ip_address": agent.ip_address
+            }]
+        task["remote_path"] = []
+        for config in agent.configs.all():
+            task["remote_path"].append(config.path)
+        tid = msgqs.push_task(task)
+        return redirect("TaskProfile", id=tid)
+
+
+class TaskView(View):
+    @method_decorator(login_required(login_url="AuthLogin"))
+    def get(self, request, id=None):
+        if id:
+            ctx = const.CONTEXT_ORIGIN
+            try:
+                ttask = models.Task.objects.all().get(id=id)
+            except models.Task.DoesNotExist:
+                ctx["sources"]["title"] = "任务不存在"
+                ctx["errors"] = [const.TASK_NOT_FOUND]
+                return render(request, "base.html", ctx)
+            task_data = serializers.TaskSerializer(ttask)
+            ctx["sources"]["tasks"] = task_data.data
+            if ttask.has_result:
+                ctx["sources"]["tasks"]["result"] = json.loads(ttask.result)
+            ctx["sources"]["tasks"]["task"] = json.loads(ttask.task)
+            ctx["sources"]["title"] = "任务详情"
+            return render(request, "task/profile.html", ctx)
+        else:
+            tasks = models.Task.objects.all()[:20]
+            tasks_data = serializers.TaskSerializer(tasks, many=True)
+            ctx = const.CONTEXT_ORIGIN
+            ctx["sources"]["title"] = "任务列表"
+            ctx["sources"]["tasks"] = tasks_data.data
+            ctx["errors"] = []
+            return render(request, "task/list.html", ctx)

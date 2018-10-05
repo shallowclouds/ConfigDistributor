@@ -7,7 +7,6 @@ from django.views.generic import TemplateView
 
 urlpatterns = [
     path('', TemplateView.as_view(template_name="index.html"), name="index"),
-    path('admin/', admin.site.urls),
     path('web/', include('web.urls')),
     path('api/', include('apis.urls')),
 ]
@@ -17,3 +16,4 @@ if settings.DEBUG:
         settings.STATIC_URL, 
         document_root=settings.STATIC_ROOT
         )
+    urlpatterns.append(path('admin/', admin.site.urls))

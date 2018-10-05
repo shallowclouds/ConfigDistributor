@@ -56,3 +56,30 @@ class Agent(models.Model):
 
     def __str__(self):
         return self.ip_address
+
+
+class Task(models.Model):
+    TYPE_CHOICES = (
+        ("查看服务器配置文件", "GET"),
+        ("推送服务器文件", "POST"),
+        ("测试服务器连接", "TEST"),
+    )
+    id = models.AutoField("ID", primary_key=True)
+    uuid = models.UUIDField("uuid")
+    task = models.TextField("task content", default="")
+    has_result = models.BooleanField("has result", default=False)
+    result = models.TextField("task result", default="")
+    create_time = models.DateTimeField("create_time", default=timezone.now)
+    complete_time = models.DateTimeField("create_time", default=timezone.now)
+    types = models.CharField(
+        "type",
+        max_length=30,
+        choices=TYPE_CHOICES,
+        default="TEST"
+    )
+
+    class Meta:
+        ordering = ['-id']
+
+    def __str__(self):
+        return str(self.uuid)
