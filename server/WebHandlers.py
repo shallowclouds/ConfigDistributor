@@ -1,6 +1,7 @@
 import asyncio
 import concurrent.futures
 import os
+import socket
 import time
 
 from server.utils import DataPacking
@@ -8,22 +9,26 @@ from server.utils import Logger
 
 
 class RetObj:
-    def __init__(self, address: str, result: bool, exp_type: str = None, exc_val: str = None, **kwargs):
+    def __init__(self, addr_info: dict, result: bool, failure_reason: str = None, **kwargs):
         self.result = result
-        self.address = address
         self.kwargs = kwargs
-        if exp_type is not None:
-            self.exp_type = exp_type
-            self.exp_val = exc_val
+        self.addr_info = addr_info
+        self.failure_reason = None
+        if failure_reason is not None:
+            self.failure_reason = failure_reason
 
     def return_dict(self):
+        ret = self.addr_info
         if self.result:
-            success_ret = {self.address: {'result': self.result}}
-            success_ret[self.address].update(self.kwargs)
-            Logger.info(success_ret, level=Logger.DEBUG)
-            return success_ret
+            ret.update({'result': True})
+            for k, v in self.kwargs.items():
+                ret[k] = v
+            return ret
         else:
-            return {self.address: {'result': self.result, 'exp_type': self.exp_type, 'exp_val': self.exp_val}}
+            ret.update({'result': False})
+            if self.failure_reason is not None:
+                ret.update({'failure_reason': self.failure_reason})
+            return ret
 
 
 class StreamHandlers:
@@ -64,7 +69,7 @@ class StreamHandlers:
         return attr_recv
 
 
-async def do_method(attrs: dict, addr: str, loop, key: bytes):
+async def do_method(attrs: dict, addr_info: dict, loop, key: bytes, timeout: int):
     """
     Handle different methods in attributes dict here
 
@@ -72,71 +77,73 @@ async def do_method(attrs: dict, addr: str, loop, key: bytes):
     send, get, check_conn, close
 
     :param attrs: the attributes to be sent to client specified by addr
-    :param addr: the address of client
+    :param addr_info: the address of client
     :param loop: the event loop that the subprocess uses
     :param key: the key of cipher
     """
     try:
-        async with StreamHandlers(addr, attrs['timeout'], loop, key) as handler:
+        async with StreamHandlers(addr_info['ip_address'], timeout, loop, key) as handler:
             if attrs['type'] == 'POST':
                 Logger.info(attrs, level=Logger.DEBUG)
                 handler.send_attrs(attrs)
 
                 attr_recv = await handler.recv_attrs()
-                if attr_recv['result']:
-                    return RetObj(addr, True)
+                if attr_recv.pop('result'):
+                    return RetObj(addr_info, True, **attr_recv)
                 else:
-                    return RetObj(addr, False, attr_recv['exc_type'], attr_recv['exc_val'])
+                    return RetObj(addr_info, False)
 
             elif attrs['type'] == 'GET':
                 handler.send_attrs(attrs)
                 attr_recv = await handler.recv_attrs()
-                if attr_recv['result']:
-                    DataPacking.b64str_to_file(attrs['local-path'], attr_recv['file-content-b64'])
-                    return RetObj(addr, True)
+                Logger.info(attr_recv, level=Logger.DEBUG)
+                if attr_recv.pop('result'):
+                    return RetObj(addr_info, True, **attr_recv)
                 else:
-                    return RetObj(addr, False, attr_recv['exc_type'], attr_recv['exc_val'])
+                    return RetObj(addr_info, False)
 
             elif attrs['type'] == 'TEST':
                 handler.send_attrs(attrs)
                 start = time.time()
                 attr_recv = await handler.recv_attrs()
                 end = time.time()
-                return RetObj(addr, attr_recv['result'], latency=round(end - start, 3))
-
-    except (TimeoutError, asyncio.TimeoutError):
+                return RetObj(addr_info, attr_recv['result'], latency=round(end - start, 3))
+    except (TimeoutError, asyncio.TimeoutError, socket.gaierror):
         exc_val = 'Timeout Error: Failed to connect to %s. ' \
-                  'Please check the availability of the connection.' % addr
+                  'Please check the availability of the connection.' % addr_info['ip_address']
         Logger.info(exc_val, level=Logger.DEBUG)
-        return RetObj(addr, False, 'TimeoutError', exc_val)
+        return RetObj(addr_info, False, exc_val)
     except ConnectionRefusedError:
-        exc_val = 'Connection Refused Error: %s refused to establish connection.' % addr
+        exc_val = 'Connection Refused Error: %s' \
+                  ' refused to establish connection.' % addr_info['ip_address']
         Logger.info(exc_val, level=Logger.DEBUG)
-        return RetObj(addr, False, 'ConnectionRefusedError', exc_val)
+        return RetObj(addr_info, False, exc_val)
     except Exception as e:
         exc_type = str(type(e)).split("'")[1]
         exc_val = str(e)
         Logger.info(exc_type, ':', exc_val, level=Logger.ERROR)
-        return RetObj(addr, False, exc_type, exc_val)
+        return RetObj(addr_info, False, exc_type + ': ' + exc_val)
 
 
-def subprocess_routine(attrs: dict, client_list_slice: list, key: bytes):
+def subprocess_routine(attrs: dict, client_list_slice: list, key: bytes, timeout: int):
     Logger.info(attrs, level=Logger.DEBUG)
 
     loop = asyncio.get_event_loop()
 
-    fs = [do_method(attrs, client_list_slice[i]["ip_address"], loop, key) for i in range(0, len(client_list_slice))]
+    fs = [do_method(attrs, client_list_slice[i], loop, key, timeout) for i in
+          range(0, len(client_list_slice))]
 
-    ret = {}
+    result_list = []
     done, _ = loop.run_until_complete(asyncio.wait(fs, return_when=asyncio.ALL_COMPLETED))
     for fut in done:
-        ret.update(fut.result().return_dict())
+        # Logger.info(fut.result().return_dict(), level=Logger.DEBUG)
+        result_list.append(fut.result().return_dict())
     loop.close()
-    # Logger.info('Result of single subprocess:', ret, level=Logger.DEBUG)
-    return ret
+    # Logger.info('Result of single subprocess:', ret, level=Logger.DEBUG)i
+    return result_list
 
 
-def pass_attrs_to_clients(attrs: dict, client_list: list, key: bytes):
+def pass_attrs_to_clients(attrs: dict, client_list: list, key: bytes, timeout: int):
     core_cnt = os.cpu_count()
     block_len = max(int(len(client_list) / core_cnt), 5)
     block_cnt = int(len(client_list) / block_len)
@@ -149,12 +156,18 @@ def pass_attrs_to_clients(attrs: dict, client_list: list, key: bytes):
     with concurrent.futures.ProcessPoolExecutor(max_workers=core_cnt) as executor:
         sp_routines = []
         for i in range(0, block_cnt):
-            sp_routines.append(executor.submit(subprocess_routine, attrs, client_list_slices[i], key))
+            sp_routines.append(executor.submit(subprocess_routine, attrs, client_list_slices[i], key, timeout))
         Logger.info(sp_routines, level=Logger.DEBUG)
         done, _ = concurrent.futures.wait(sp_routines)
 
-    ret = {}
+    ret = {
+        'type': attrs['type'],
+        'uuid': attrs['uuid'],
+        'result_list': []
+    }
+    # from pprint import pprint
     for fut in done:
-        ret.update(fut.result())
+        # pprint(fut.result())
+        ret['result_list'].append(fut.result())
     # Logger.info("Concatenated result of all subprocess: ", ret, level=Logger.DEBUG)
     return ret

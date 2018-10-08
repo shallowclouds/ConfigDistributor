@@ -1,7 +1,5 @@
 import asyncio
 
-key_ = b'\x0c@\xf0\x0f +\xd1g\x84\xf1#Z\xc3\xe4\xabX|\xe7\xa4\x00\x94\xc5{\x0eS\x8e\x1f\x1e\x07\xd0eh'
-
 
 class StreamHandler:
     def __init__(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter, key: bytes):
@@ -31,29 +29,58 @@ class StreamHandler:
 async def response_handler(reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
     handler = StreamHandler(reader, writer, key_)
     try:
-        success_ret = {'result': True}
-
         Logger.info('Connection established.', level=Logger.DEBUG)
         attrs_recv = await handler.recv_attr()
         Logger.info(attrs_recv, level=Logger.DEBUG)
 
-        if attrs_recv['method'] == 'send':
-            DataPacking.b64str_to_file(attrs_recv['remote-path'], attrs_recv['file-content-b64'])
-        elif attrs_recv['method'] == 'get':
-            success_ret.update({
-                'file-content-b64': DataPacking.file_to_b64str(attrs_recv['remote-path'])
-            })
-        elif attrs_recv['method'] == 'check_conn':
+        ret = {'result': True}
+
+        if attrs_recv['type'] == 'POST':
+            ret.update({'file_list': []})
+            for file_info in attrs_recv['file_list']:
+                try:
+                    DataPacking.b64str_to_file(file_info['remote_path'], file_info['file_content_b64'])
+                except Exception as e:
+                    exc_type = str(type(e)).split("'")[1]
+                    exc_val = str(e)
+                    ret['file_list'].append({
+                        'remote_path': file_info['remote_path'],
+                        'result': False,
+                        'failure_reason': exc_type + ': ' + exc_val
+                    })
+                else:
+                    ret['file_list'].append({
+                        'remote_path': file_info['remote_path'],
+                        'result': True
+                    })
+        elif attrs_recv['type'] == 'GET':
+            ret.update({'file_list': []})
+            for path in attrs_recv['remote_path']:
+                try:
+                    file_info = {
+                        'path': path,
+                        'result': True,
+                        "file_content_b64": DataPacking.file_to_b64str(path)
+                    }
+                    ret['file_list'].append(file_info)
+                except Exception as e:
+                    exc_type = str(type(e)).split("'")[1]
+                    exc_val = str(e)
+                    ret['file_list'].append({
+                        'remote_path': path,
+                        'result': False,
+                        'failure_reason': exc_type + ': ' + exc_val
+                    })
+        elif attrs_recv['type'] == 'TEST':
             pass
     except Exception as e:
         Logger.info(type(e), e, level=Logger.DEBUG)
         handler.send_attrs({
             'result': False,
-            'exc_type': str(type(e)).split("'")[1],
-            'exc_val': str(e)
+            'failure_reason': str(type(e)).split("'")[1] + ': ' + str(e)
         })
     else:
-        handler.send_attrs(success_ret)
+        handler.send_attrs(ret)
 
 
 def main():
@@ -84,5 +111,11 @@ if __name__ == '__main__':
 
     import server.utils.DataPacking as DataPacking
     import server.utils.Logger as Logger
+    import json
+    import base64
 
+    settings_path = os.path.join(project_path, 'general-settings.json')
+    with open(settings_path) as settings_file:
+        general_settings = json.load(settings_file)
+    key_ = base64.b64decode(general_settings['key-b64'])
     main()

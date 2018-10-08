@@ -17,7 +17,7 @@ def timethis(func):
 def main(general_settings: dict):
     attr_get = {
         "type": "GET",
-        "uuid": 1,
+        "uuid": "1be317fc-c871-11e8-89be-3cf862da4116",
         "client_list": [
             {
                 "id": 1,
@@ -35,7 +35,7 @@ def main(general_settings: dict):
     }
     attr_post = {
         "type": "POST",
-        "uuid": 3,
+        "uuid": "1be317fc-c871-11e8-89be-3cf862da4116",
         "client_list": [
             {
                 "id": 1,
@@ -56,10 +56,8 @@ def main(general_settings: dict):
                 "file-content-b64": "<base64 encode>"
             },
         ],
-        "key": b'\x0c@\xf0\x0f +\xd1g\x84\xf1#Z\xc3\xe4\xabX|\xe7\xa4\x00\x94\xc5{\x0eS\x8e\x1f\x1e\x07\xd0eh',
-        'timeout': 4
     }
-    client_list = attr_post.pop("client_list")
+    client_list = attr_get.pop("client_list")
 
     Logger.info(attr_get)
     Logger.info(client_list)
@@ -80,8 +78,10 @@ def main(general_settings: dict):
 
     key = DataPacking.get_key32()
     key_ = b'\x0c@\xf0\x0f +\xd1g\x84\xf1#Z\xc3\xe4\xabX|\xe7\xa4\x00\x94\xc5{\x0eS\x8e\x1f\x1e\x07\xd0eh'
-    ret_val = WebHandlers.pass_attrs_to_clients(attr_post, client_list, key_)
+    ret_val = WebHandlers.pass_attrs_to_clients(attr_get, client_list, general_settings['key'],
+                                                general_settings['timeout'])
     Logger.info("Concatenated result of all subprocess: ", ret_val, level=Logger.DEBUG)
+    pprint(ret_val)
 
 
 if __name__ == '__main__':
@@ -106,6 +106,6 @@ if __name__ == '__main__':
     settings_path = os.path.join(project_path, 'general-settings.json')
     with open(settings_path) as settings_file:
         general_settings = json.load(settings_file)
-    key = base64.b64decode(general_settings['key-b64'])
-    Logger.info(key)
+    general_settings['key'] = base64.b64decode(general_settings['key-b64'])
+    Logger.info(general_settings['key'])
     main(general_settings)
