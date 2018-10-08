@@ -6,4 +6,11 @@ AGENT_NOT_FOUND = "该服务器不存在，请检查id后重试"
 
 USER_NOT_FOUND = "该用户不存在，请重试"
 
-CONTEXT_ORIGIN = {"sources": {"title": "配置文件分发系统"}, "error": [], }
+TASK_NOT_FOUND = "任务不存在，请重试"
+
+CONTEXT_ORIGIN = {
+    "sources": {
+        "title": "配置文件分发系统"
+        },
+    "error": [],
+    }

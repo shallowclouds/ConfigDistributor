@@ -2,3 +2,4 @@ pycryptodome
 Django
 djangorestframework
 uwsgi
+redis

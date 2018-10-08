@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block right %}
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">type</th>
+            <th scope="col">uuid</th>
+            <th scope="col">status</th>
+            <th scope="col">time</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for i in sources.tasks %}
+        <tr>
+            <th scope="row"><a href="{% url 'TaskProfile' i.id  %}">{{ i.id }}</th>
+            <th scope="row">{{ i.types }}</th>
+            <td><a href="{% url 'TaskProfile' i.id  %}">{{ i.uuid }}</a></td>
+            <td>
+                {% if i.has_result %}
+                    <span class="badge badge-success">Complete</span>
+                {% else %}
+                    <span class="badge badge-info">Pending</span>
+                {% endif %}
+            <td>{{ i.create_time }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

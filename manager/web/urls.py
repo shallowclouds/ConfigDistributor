@@ -56,13 +56,16 @@ auth_urls = [
         ),
 ]
 
-push_urls = [
-    path('', views.PushView.as_view(), name="Push"),
+task_urls = [
+    path('pull/<int:id>/', views.PullView.as_view(), name="PullById"),
+    path('list/', views.TaskView.as_view(), name="TaskList"),
+    path('profile/<int:id>/', views.TaskView.as_view(), name="TaskProfile"),
+    path('push/', views.PushView.as_view(), name="Push"),
 ]
 
 urlpatterns = [
     path('config/', include(config_urls)),
     path('agent/', include(agent_urls)),
     path('auth/', include(auth_urls)),
-    path('push/', include(push_urls)),
+    path('task/', include(task_urls)),
 ]

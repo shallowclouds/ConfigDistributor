@@ -1,15 +1,34 @@
 <div class="card">
-<div class="card-header">ShortCuts</div>
-<!-- <div class="panel-body"> -->
+    
+    <div class="card-header">Config Operations</div>
     <ul class="list-group list-group-flush">
-        <li class="list-group-item"><a href="{% url 'index' %}">Index</a></li>
         <li class="list-group-item"><a href="{% url 'ConfigList' %}">Config File List</a></li>
         <li class="list-group-item"><a href="{% url 'ConfigAdd' %}">Add Config File</a></li>
+    </ul>
+
+    <div class="card-header">Agent Operations</div>
+    <ul class="list-group list-group-flush">
         <li class="list-group-item"><a href="{% url 'AgentList' %}">Agent List</a></li>
         <li class="list-group-item"><a href="{% url 'AgentAdd' %}">Add Agent</a></li>
+    </ul>
+
+    <div class="card-header">Auth Operations</div>
+    <ul class="list-group list-group-flush">
         <li class="list-group-item"><a href="{% url 'AuthUser' %}">User List</a></li>
         <li class="list-group-item"><a href="{% url 'AuthUserAdd' %}">Add User</a></li>
+        <li class="list-group-item"><a href="{% url 'index' %}">Back to Index Page</a></li>
         <li class="list-group-item"><a href="{% url 'AuthLogout' %}">Logout</a></li>
     </ul>
-<!-- </div> -->
+
+    <div class="card-header">Other Operations</div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item"><a href="{% url 'Push' %}">Push Config Files</a></li>
+        <li class="list-group-item"><a href="#">Diff Config Files</a></li>
+        <li class="list-group-item"><a href="#">Test Server Connection</a></li>
+    </ul>
+
+    <div class="card-header">Tasks</div>
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item"><a href="{% url 'TaskList' %}">Latest Tasks</a></li>
+    </ul>
 </div>

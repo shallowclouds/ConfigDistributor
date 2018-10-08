@@ -1,9 +1,10 @@
 from rest_framework import serializers
-from .models import ConfigFile, Agent
+from .models import ConfigFile, Agent, Task
 from django.contrib.auth.models import User
 
 
 class ConfigSerializer(serializers.ModelSerializer):
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
     class Meta:
         model = ConfigFile
@@ -31,3 +32,13 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("username", "password", "email", "id")
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    complete_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
+    class Meta:
+        model = Task
+        # fields = "__all__"
+        exclude = ("task", "result")
