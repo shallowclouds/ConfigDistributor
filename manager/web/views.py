@@ -383,9 +383,52 @@ def AuthUserDeleteView(request, id):
 
 
 class PushView(View):
+
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request, id=None):
-        pass
+        ctx = const.CONTEXT_ORIGIN
+        if id:
+            try:
+                agent = models.Agent.objects.all().get(id=id)
+            except models.Agent.DoesNotExist:
+                ctx["errors"].append(const.AGENT_NOT_FOUND)
+                return render(request, "base.html", ctx)
+            configs = agent.configs.all()
+            ctx["sources"]["title"] = "Push Configs"
+            ctx["sources"]["configs"] = serializers.ConfigSerializer(
+                configs,
+                many=True
+                ).data
+            ctx["sources"]["agents"] = [serializers.AgentSerializer(agent).data, ]
+            return render(request, "task/push_task.html", ctx)
+        else:
+            agents = models.Agent.objects.all()
+            configs = models.ConfigFile.objects.all()
+            ctx["sources"]["title"] = "Push Configs"
+            ctx["sources"]["configs"] = serializers.ConfigSerializer(
+                configs,
+                many=True
+                ).data
+            ctx["sources"]["agents"] = serializers.AgentSerializer(
+                agents,
+                many=True
+                ).data
+            return render(request, "task/push_task.html", ctx)
+
+    @method_decorator(login_required(login_url="AuthLogin"))
+    def post(self, request):
+        config_id_list = request.POST.getlist("configs[]")
+        agent_id_list = request.POST.getlist("agents[]")
+        configs = [models.ConfigFile.objects.all().get(id=id) for id in config_id_list]
+        agents = [models.Agent.objects.all().get(id=id) for id in agent_id_list]
+        task_data = {
+            "type": "POST",
+            "client_list": [{"id": agent.id, "ip_address": agent.ip_address} for agent in agents],
+            "file_list": [{"remote_path": config.path, "file_content_b64": config.contents} for config in configs],
+        }
+        # print(task_data)
+        taskid = msgqs.push_task(task_data)
+        return redirect("TaskProfile", id=taskid)
 
 
 class PullView(View):
@@ -430,6 +473,7 @@ class TaskView(View):
             ctx["sources"]["title"] = "任务详情"
             return render(request, "task/profile.html", ctx)
         else:
+            msgqs.get_results()
             tasks = models.Task.objects.all()[:20]
             tasks_data = serializers.TaskSerializer(tasks, many=True)
             ctx = const.CONTEXT_ORIGIN

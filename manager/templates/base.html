@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     {% load static %}
@@ -21,9 +20,7 @@
           <div class="col-md-9">
             {% if errors %}
               {% for error in errors %}
-              <!-- <div class="row"> -->
                   <div class="alert alert-warning" role="alert">{{ error }}</div>
-              <!-- </div> -->
               {% endfor %}
             {% endif %}
           {% block right %}
@@ -33,12 +30,6 @@
         </div>
       {% endblock %}
     </div>
-
-    <!-- <footer class="footer">
-      <div class="container text-center">
-        <span>Web manager written by <a href="mailto:shallowcloud@yeah.net">Yorling</a>.</span>
-      </div>
-    </footer> -->
     <script src="{% static "dist/js/popper.min.js" %}"></script>
     <script src="{% static "dist/js/jquery.min.js" %}"></script>
     <script src="{% static "dist/js/bootstrap.min.js" %}"></script>

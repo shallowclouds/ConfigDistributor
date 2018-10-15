@@ -37,6 +37,8 @@ agent_urls = [
         views.AgentDeleteView.as_view(),
         name="AgentDelete"
         ),
+    path('push/', views.PushView.as_view(), name="Push"),
+    path('push/<int:id>/', views.PushView.as_view(), name="PushById"),
 ]
 
 auth_urls = [
@@ -60,7 +62,6 @@ task_urls = [
     path('pull/<int:id>/', views.PullView.as_view(), name="PullById"),
     path('list/', views.TaskView.as_view(), name="TaskList"),
     path('profile/<int:id>/', views.TaskView.as_view(), name="TaskProfile"),
-    path('push/', views.PushView.as_view(), name="Push"),
 ]
 
 urlpatterns = [

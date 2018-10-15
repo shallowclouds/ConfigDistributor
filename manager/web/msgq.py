@@ -17,13 +17,16 @@ class MessageQ(object):
             )
 
     def get_results(self):
-        while self.get_task_length() >= 1:
+        while self.get_result_length() > 0:
             try:
                 result = self.queue.blpop("result")
                 objects = json.loads(result[1])
                 if objects["type"] == "GET":
                     for idx in range(len(objects["result_list"])):
-                        objects["result_list"][idx]["file_content_b64"] = base64.decode(objects["result_list"][idx]["file_content_b64"])
+                        if not objects["result_list"][idx]["result"]:
+                            continue
+                        for idx2 in range(len(objects["result_list"][idx]["file_list"])):
+                            objects["result_list"][idx]["file_list"][idx2]["file_content_b64"] = base64.b64decode(objects["result_list"][idx]["file_list"][idx2]["file_content_b64"]).decode("utf-8")
                 tuuid = objects["uuid"]
                 task = models.Task.objects.all().get(uuid=tuuid)
                 task.result = json.dumps(objects)
@@ -45,9 +48,11 @@ class MessageQ(object):
             pass
         elif task["type"] == "POST":
             for idx in range(len(task["file_list"])):
-                task["file_list"][idx]["file_content_b64"] = base64.encode(
-                    task["file_list"][idx]["file_content_b64"]
-                    )
+                task["file_list"][idx]["file_content_b64"] = base64.b64encode(
+                    bytes(
+                        task["file_list"][idx]["file_content_b64"],
+                        encoding="utf8")
+                    ).decode("ascii")
         elif task["type"] == "TEST":
             pass
         self.queue.lpush("task", json.dumps(task))
@@ -55,3 +60,6 @@ class MessageQ(object):
 
     def get_task_length(self):
         return self.queue.llen("task")
+
+    def get_result_length(self):
+        return self.queue.llen("result")

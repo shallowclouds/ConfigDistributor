@@ -12,8 +12,8 @@
         {% endif %}
     </div>
     <div class="card-body">
-        {% if sources.tasks.types == "GET" %}
         <h6>Result List(Click for detail):</h6>
+        {% if sources.tasks.types == "GET" %}
         <div id="accordion">
             {% for i in sources.tasks.task.client_list %}
             <div class="card">
@@ -22,11 +22,11 @@
                         <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                             {{ i.ip_address }}
                             {% if sources.tasks.has_result %}
-                                {% if i.result %}
+                                <!-- {% if i.result %}
                                     <span class="badge badge-success">Success</span>
                                 {% else %}
                                     <span class="badge badge-danger">Failed</span>
-                                {% endif %}
+                                {% endif %} -->
                             {% else %}
                             <span class="badge badge-info">Pending</span>
                             {% endif %}
@@ -53,28 +53,48 @@
             </div>
             {% endfor %}
         </div>
-        <!-- {% for i in sources.tasks.task.client_list %}
-            <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapse{{ i.id }}" aria-expanded="false">
-                {{ i.ip_address }}
-            </button>
-            <div class="collapse" id="collapse{{ i.id }}">
-                <div class="card card-body">
-                    {% if sources.tasks.has_result %}
-                        {% for result in sources.tasks.result.result_list %}
-                            {% if result.result %}
-                                //
-                            {% else %}
-                                fetch config file failed: {{ result.failure_reason }}
-                            {% endif %}
-                        {% endfor %}
-                    {% endif %}
-                </div>
-              </div>
-        {% endfor %} -->
         {% elif sources.tasks.types == "POST" %}
-        <h3>POST</h3>
+        <div id="accordion">
+            {% for i in sources.tasks.task.client_list %}
+            <div class="card">
+                <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            {{ i.ip_address }}
+                            {% if sources.tasks.has_result %}
+                                <!-- {% if i.result %}
+                                    <span class="badge badge-success">Success</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Failed</span>
+                                {% endif %} -->
+                            {% else %}
+                            <span class="badge badge-info">Pending</span>
+                            {% endif %}
+                        </button>
+                    </h5>
+                </div>
+          
+                <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        {% if sources.tasks.has_result %}
+                            {% for result in sources.tasks.result.result_list %}
+                                {% for file in result.files %}
+                                    {{ file.remote_path }}:
+                                        {% if file.result %}
+                                            <code>Success</code>
+                                        {% else %}
+                                            push config file failed: {{ file.failure_reason }}
+                                        {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
         {% elif sources.tasks.types == "TEST" %}
-        <h3>POST</h3>
+        <h3>TEST</h3>
         {% endif %}
     </div>
 </div>

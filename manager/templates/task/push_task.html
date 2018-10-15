@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block right %}
+<div class="card">
+    <div class="card-header">
+      Push Config File
+    </div>
+    
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="AgentSelect">Agent select(use Ctrl to select multiple)</label>
+              <select multiple class="form-control" id="AgentSelect" name="agents[]">
+                {% for agent in sources.agents %}
+                    <option value="{{ agent.id }}"> [{{ agent.ip_address }}] - {{ agent.name }} </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ConfigSelect">Config select(use Ctrl to select multiple)</label>
+              <select multiple class="form-control" id="ConfigSelect" name="configs[]">
+                {% for config in sources.configs %}
+                    <option value="{{ config.id }}"> [{{ config.path }}] - {{ config.name }} </option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
