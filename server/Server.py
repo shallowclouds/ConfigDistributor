@@ -64,15 +64,15 @@ def main(general_settings: dict):
     Logger.info(client_list)
     """
     queue = redis.Redis()
-    try:
-        while True:
+    while True:
+        try:
             task = json.loads(queue.blpop('task')[1])
             client_list = task.pop("client_list")
             result = WebHandlers.pass_attrs_to_clients(task, client_list, general_settings['key'],
                                                        general_settings['timeout'])
             queue.lpush('result', json.dumps(result))
-    except Exception as e:
-        Logger.info('Error occurred within Main Loop:\n', str(e))
+        except Exception as e:
+            Logger.info('Error occurred within Main Loop:\n', str(e))
 
     """
     key = DataPacking.get_key32()
