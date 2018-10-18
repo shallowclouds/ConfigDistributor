@@ -114,6 +114,7 @@ if __name__ == '__main__':
     import json
     import base64
 
+    # project_path = 'C:\\Users\\76033\\PycharmProjects\\ConfigDistributor'
     settings_path = os.path.join(project_path, 'general-settings.json')
     with open(settings_path) as settings_file:
         general_settings = json.load(settings_file)

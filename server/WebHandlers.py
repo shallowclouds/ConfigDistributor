@@ -168,6 +168,6 @@ def pass_attrs_to_clients(attrs: dict, client_list: list, key: bytes, timeout: i
     # from pprint import pprint
     for fut in done:
         # pprint(fut.result())
-        ret['result_list'].append(fut.result())
+        ret['result_list'] = ret['result_list'] + fut.result()
     # Logger.info("Concatenated result of all subprocess: ", ret, level=Logger.DEBUG)
     return ret

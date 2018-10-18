@@ -15,7 +15,6 @@ def timethis(func):
 
 
 def main(general_settings: dict):
-    """
     attr_get = {
         "type": "GET",
         "uuid": "1be317fc-c871-11e8-89be-3cf862da4116",
@@ -81,7 +80,6 @@ def main(general_settings: dict):
                                                 general_settings['timeout'])
     Logger.info("Concatenated result of all subprocess: ", ret_val, level=Logger.DEBUG)
     pprint(ret_val)
-    """
 
 
 if __name__ == '__main__':
@@ -104,6 +102,7 @@ if __name__ == '__main__':
 
     Logger.set_debug(DEBUG_)
 
+    # project_path = 'C:\\Users\\76033\\PycharmProjects\\ConfigDistributor'
     settings_path = os.path.join(project_path, 'general-settings.json')
     with open(settings_path) as settings_file:
         general_settings = json.load(settings_file)
