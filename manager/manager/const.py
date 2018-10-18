@@ -14,3 +14,14 @@ CONTEXT_ORIGIN = {
         },
     "error": [],
     }
+
+TEST_TASK = {
+    "type": "TEST",
+    "uuid": "",
+    "client_list": [
+        # {
+        #     "id": 1,
+        #     "ip_address": ""
+        # },
+    ]
+}

@@ -19,8 +19,9 @@ config_urls = [
     path(
         'diff/<int:id1>/<int:id2>/',
         views.ConfigDiffView.as_view(),
-        name="ConfigDiff"
+        name="ConfigDiffById"
         ),
+    path('diff/', views.ConfigDiffView.as_view(), name="ConfigDiffChoose"),
 ]
 
 agent_urls = [
@@ -39,6 +40,8 @@ agent_urls = [
         ),
     path('push/', views.PushView.as_view(), name="Push"),
     path('push/<int:id>/', views.PushView.as_view(), name="PushById"),
+    path('test/', views.TestConnectionView.as_view(), name="TestConnection"),
+    path('test/<int:id>/', views.TestConnectionView.as_view(), name="TestConnectionById"),
 ]
 
 auth_urls = [

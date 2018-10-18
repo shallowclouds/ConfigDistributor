@@ -64,6 +64,7 @@
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="{% url 'PullById' sources.agents.id %}">Inspect Server's Configs</a>
                     <a class="dropdown-item" href="{% url 'PushById' sources.agents.id %}">Push Configs To Server</a>
+                    <a class="dropdown-item" href="{% url 'TestConnectionById' sources.agents.id %}">Refresh Server's Connection Status</a>
                     </div>
                 </div>
             </div>

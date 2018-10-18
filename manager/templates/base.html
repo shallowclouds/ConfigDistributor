@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{% static "dist/css/bootstrap.min.css" %}">
     <!-- <link rel="stylesheet" href="{% static "dist/css/sticky-footer.css" %}"> -->
     <link rel="stylesheet" href="{% static "code/prettify.css" %}">
+    {% block head %}
+    {% endblock %}
 
     <title>{{ sources.title }}</title>
   </head>
