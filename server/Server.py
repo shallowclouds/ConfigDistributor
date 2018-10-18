@@ -15,6 +15,7 @@ def timethis(func):
 
 
 def main(general_settings: dict):
+    """
     attr_get = {
         "type": "GET",
         "uuid": "1be317fc-c871-11e8-89be-3cf862da4116",
@@ -80,6 +81,7 @@ def main(general_settings: dict):
                                                 general_settings['timeout'])
     Logger.info("Concatenated result of all subprocess: ", ret_val, level=Logger.DEBUG)
     pprint(ret_val)
+    """
 
 
 if __name__ == '__main__':
