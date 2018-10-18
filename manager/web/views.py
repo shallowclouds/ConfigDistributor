@@ -140,7 +140,21 @@ class ConfigDiffView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request, id1=None, id2=None):
-        pass
+        if id1 and id2:
+            ctx = const.CONTEXT_ORIGIN
+            try:
+                config1 = models.ConfigFile.objects.all().get(id=id1)
+                config2 = models.ConfigFile.objects.all().get(id=id2)
+            except models.ConfigFile.DoesNotExist:
+                ctx["sources"]["title"] = "Config Not Found"
+                ctx["errors"].append(const.CONFIG_NOT_FOUND)
+                return render(request, "base.html", ctx)
+            ctx["sources"]["title"] = "Config File Diff"
+            ctx["sources"]["config_first"] = serializers.ConfigSerializer(config1).data
+            ctx["sources"]["config_second"] = serializers.ConfigSerializer(config2).data
+            return render(request, "config/diff.html", ctx)
+        else:
+            return render(request, "config/diff.html")
 
 
 class AgentListView(View):
@@ -416,7 +430,7 @@ class PushView(View):
             return render(request, "task/push_task.html", ctx)
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request):
+    def post(self, request, id=None):
         config_id_list = request.POST.getlist("configs[]")
         agent_id_list = request.POST.getlist("agents[]")
         configs = [models.ConfigFile.objects.all().get(id=id) for id in config_id_list]
@@ -468,9 +482,12 @@ class TaskView(View):
             task_data = serializers.TaskSerializer(ttask)
             ctx["sources"]["tasks"] = task_data.data
             if ttask.has_result:
+                print(json.loads(ttask.result))
                 ctx["sources"]["tasks"]["result"] = json.loads(ttask.result)
+            # print(ctx["sources"]["tasks"]["result"])
             ctx["sources"]["tasks"]["task"] = json.loads(ttask.task)
             ctx["sources"]["title"] = "任务详情"
+            # print(ctx)
             return render(request, "task/profile.html", ctx)
         else:
             msgqs.get_results()
@@ -481,3 +498,27 @@ class TaskView(View):
             ctx["sources"]["tasks"] = tasks_data.data
             ctx["errors"] = []
             return render(request, "task/list.html", ctx)
+
+
+class TestConnectionView(View):
+
+    @method_decorator(login_required(login_url="AuthLogin"))
+    def get(self, request, id=None):
+        task_data = const.TEST_TASK
+        if id:
+            ctx = const.CONTEXT_ORIGIN
+            try:
+                agent = models.Agent.objects.all().get(id=id)
+            except models.Task.DoesNotExist:
+                ctx["sources"]["title"] = "Server Not Found"
+                ctx["errors"].append(const.AGENT_NOT_FOUND)
+                return render(request, "base.html", ctx)
+            task_data["client_list"].append({"id": agent.id, "ip_address": agent.ip_address})
+            task_id = msgqs.push_task(task_data)
+            return redirect("TaskProfile", task_id)
+        else:
+            agents = models.Agent.objects.all()
+            for agent in agents:
+                task_data["client_list"].append({"id": agent.id, "ip_address": agent.ip_address})
+            task_id = msgqs.push_task(task_data)
+            return redirect("TaskProfile", task_id)

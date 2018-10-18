@@ -23,8 +23,8 @@
     <div class="card-header">Other Operations</div>
     <ul class="list-group list-group-flush">
         <li class="list-group-item"><a href="{% url 'Push' %}">Push Config Files</a></li>
-        <li class="list-group-item"><a href="#">Diff Config Files</a></li>
-        <li class="list-group-item"><a href="#">Test Server Connection</a></li>
+        <li class="list-group-item"><a href="{% url 'ConfigDiffChoose' %}">Diff Config Files</a></li>
+        <li class="list-group-item"><a href="{% url 'TestConnection' %}">Refresh Server Connection Status</a></li>
     </ul>
 
     <div class="card-header">Tasks</div>

@@ -59,7 +59,7 @@
             <div class="card">
                 <div class="card-header" id="headingOne">
                     <h5 class="mb-0">
-                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne{{i.id}}" aria-expanded="true" aria-controls="collapseOne">
                             {{ i.ip_address }}
                             {% if sources.tasks.has_result %}
                                 <!-- {% if i.result %}
@@ -74,7 +74,7 @@
                     </h5>
                 </div>
           
-                <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                <div id="collapseOne{{i.id}}" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
                     <div class="card-body">
                         {% if sources.tasks.has_result %}
                             {% for result in sources.tasks.result.result_list %}
