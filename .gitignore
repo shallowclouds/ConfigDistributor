@@ -111,3 +111,5 @@ ENV/
 db.sqlite3
 manager/web/migrations
 manager/web/tmp_static
+
+manager/log/*

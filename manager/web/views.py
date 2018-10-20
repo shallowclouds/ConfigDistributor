@@ -26,7 +26,7 @@ class ConfigListView(View):
         return render(
             request,
             "config/list.html",
-            {"sources": {"title": "配置文件列表", "configs": res}}
+            {"sources": {"title": "Config List", "configs": res}}
             )
 
 
@@ -38,14 +38,14 @@ class ConfigProfileView(View):
             query = models.ConfigFile.objects.get(id=id)
         except models.ConfigFile.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "配置文件列表-404"},
+                "sources": {"title": "Config Detail"},
                 "errors": [const.CONFIG_NOT_FOUND, ]
                 })
         res = serializers.ConfigSerializer(query)
         return render(
             request,
             "config/profile.html",
-            {"sources": {"title": "配置文件列表", "configs": res.data}}
+            {"sources": {"title": "Config List", "configs": res.data}}
             )
 
 
@@ -56,7 +56,7 @@ class ConfigAddView(View):
         return render(
             request,
             "config/add.html",
-            {"sources": {"title": "添加配置文件"}}
+            {"sources": {"title": "Add Config"}}
             )
 
     @method_decorator(login_required(login_url="AuthLogin"))
@@ -80,14 +80,14 @@ class ConfigEditView(View):
             query = models.ConfigFile.objects.get(id=id)
         except models.ConfigFile.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "配置文件不存在-404"},
+                "sources": {"title": "Config Not Found"},
                 "errors": [const.CONFIG_NOT_FOUND, ]
                 })
         res = serializers.ConfigSerializer(query)
         return render(
             request,
             "config/edit.html",
-            {"sources": {"title": "编辑配置文件", "configs": res.data}}
+            {"sources": {"title": "Edit Config", "configs": res.data}}
             )
 
     @method_decorator(login_required(login_url="AuthLogin"))
@@ -96,7 +96,7 @@ class ConfigEditView(View):
             config = models.ConfigFile.objects.get(id=id)
         except models.ConfigFile.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "配置文件不存在-404"},
+                "sources": {"title": "Config Not Found"},
                 "errors": [const.CONFIG_NOT_FOUND, ]})
         config.name = request.POST["name"]
         config.description = request.POST["description"]
@@ -115,12 +115,12 @@ class ConfigDeleteView(View):
             query = models.ConfigFile.objects.get(id=id)
         except models.ConfigFile.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "配置文件不存在-404"},
+                "sources": {"title": "Config Not Found"},
                 "errors": [const.CONFIG_NOT_FOUND, ]})
         res = serializers.ConfigSerializer(query)
         return render(request, "config/delete.html", {
             "sources": {
-                "title": "删除配置文件", "configs": res.data
+                "title": "Delete Config", "configs": res.data
                 }
                 })
 
@@ -130,7 +130,7 @@ class ConfigDeleteView(View):
             config = models.ConfigFile.objects.get(id=id)
         except models.ConfigFile.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "配置文件不存在-404"},
+                "sources": {"title": "Config Not Found"},
                 "errors": [const.CONFIG_NOT_FOUND, ]})
         config.delete()
         return redirect("ConfigList")
@@ -154,7 +154,14 @@ class ConfigDiffView(View):
             ctx["sources"]["config_second"] = serializers.ConfigSerializer(config2).data
             return render(request, "config/diff.html", ctx)
         else:
-            return render(request, "config/diff.html")
+            ctx = const.CONTEXT_ORIGIN
+            configs = models.ConfigFile.objects.all()
+            ctx["sources"]["title"] = "Choose to Diff"
+            ctx["sources"]["configs"] = serializers.ConfigSerializerForAgent(
+                configs,
+                many=True
+                ).data
+            return render(request, "config/diff_choose.html", ctx)
 
 
 class AgentListView(View):
@@ -176,11 +183,11 @@ class AgentProfileView(View):
             query = models.Agent.objects.get(id=id)
         except models.Agent.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "服务器-404"},
+                "sources": {"title": "Server Not Found"},
                 "errors": [const.AGENT_NOT_FOUND, ]})
         res = serializers.AgentSerializer(query)
         return render(request, "agent/profile.html", {"sources": {
-            "title": "服务器列表",
+            "title": "Server List",
             "agents": res.data}})
 
 
@@ -192,7 +199,7 @@ class AgentAddView(View):
         res = serializers.ConfigSerializerForAgent(query, many=True)
         res = res.data
         return render(request, "agent/add.html", {
-            "sources": {"title": "添加服务器", "configs": res}
+            "sources": {"title": "Add Server", "configs": res}
             })
 
     @method_decorator(login_required(login_url="AuthLogin"))
@@ -223,12 +230,12 @@ class AgentDeleteView(View):
             query = models.Agent.objects.get(id=id)
         except models.Agent.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "配置文件不存在-404"},
+                "sources": {"title": "Config Not Found"},
                 "errors": [const.AGENT_NOT_FOUND, ]})
         res = serializers.AgentSerializer(query)
         return render(request, "agent/delete.html", {
             "sources": {
-                "title": "删除服务器", "agents": res.data
+                "title": "Delete Server", "agents": res.data
                 }
                 })
 
@@ -238,7 +245,7 @@ class AgentDeleteView(View):
             agent = models.Agent.objects.get(id=id)
         except models.Agent.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "该服务器不存在-404"},
+                "sources": {"title": "Server Not Found"},
                 "errors": [const.AGENT_NOT_FOUND, ]
             })
         agent.delete()
@@ -255,13 +262,13 @@ class AgentEditView(View):
             agent = models.Agent.objects.get(id=id)
         except models.Agent.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "该服务器不存在-404"},
+                "sources": {"title": "Server Not Found"},
                 "errors": [const.AGENT_NOT_FOUND, ]
             })
         res = serializers.AgentSerializer(agent)
         return render(request, "agent/edit.html", {
             "sources": {
-                "title": "编辑服务器信息",
+                "title": "Edit Server Profile",
                 "agents": res.data,
                 "configs": configs.data
                 },
@@ -274,7 +281,7 @@ class AgentEditView(View):
             agent = models.Agent.objects.get(id=id)
         except models.Agent.DoesNotExist:
             return render(request, "base.html", {
-                "sources": {"title": "该服务器不存在-404"},
+                "sources": {"title": "Server Not Found"},
                 "errors": [const.AGENT_NOT_FOUND, ]
             })
         agent.name = request.POST["name"]
@@ -339,7 +346,7 @@ class AuthUserView(View):
             users = User.objects.all()
             users_list = serializers.UserSerializer(users, many=True)
             ctx["sources"] = {
-                "title": "管理员列表",
+                "title": "User List",
                 "users": users_list.data,
             }
             return render(request, "auth/user_list.html", ctx)
@@ -352,7 +359,7 @@ class AuthUserView(View):
             return render(request, "base.html", ctx)
         users = serializers.UserSerializer(user)
         ctx["sources"] = {
-            "title": "用户信息",
+            "title": "User Profile",
             "users": users.data,
         }
         return render(request, "auth/user_profile.html", ctx)
@@ -372,7 +379,7 @@ class AuthUserView(View):
         try:
             user = User.objects.get(id=id)
         except User.DoesNotExist:
-            ctx["sources"]["title"] = "用户不存在-404"
+            ctx["sources"]["title"] = "User Not Found"
             ctx["errors"] = [const.USER_NOT_FOUND, ]
             return render(request, "base.html", ctx)
         user.username = request.POST["username"]
@@ -389,7 +396,7 @@ def AuthUserDeleteView(request, id):
     try:
         user = User.objects.get(id=id)
     except User.DoesNotExist:
-        ctx["sources"]["title"] = "用户不存在-404"
+        ctx["sources"]["title"] = "User Not Found"
         ctx["errors"] = [const.USER_NOT_FOUND, ]
         return render(request, "base.html", ctx)
     user.delete()
@@ -452,7 +459,7 @@ class PullView(View):
         try:
             agent = models.Agent.objects.all().get(id=id)
         except models.Agent.DoesNotExist:
-            ctx["sources"]["title"] = "服务器不存在"
+            ctx["sources"]["title"] = "Server Not Found"
             ctx["errors"] = [const.AGENT_NOT_FOUND]
             return (request, "base.html", ctx)
         task = dict()
@@ -472,21 +479,22 @@ class TaskView(View):
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request, id=None):
         if id:
+            msgqs.get_results()
             ctx = const.CONTEXT_ORIGIN
             try:
                 ttask = models.Task.objects.all().get(id=id)
             except models.Task.DoesNotExist:
-                ctx["sources"]["title"] = "任务不存在"
+                ctx["sources"]["title"] = "Task Not Found"
                 ctx["errors"] = [const.TASK_NOT_FOUND]
                 return render(request, "base.html", ctx)
             task_data = serializers.TaskSerializer(ttask)
             ctx["sources"]["tasks"] = task_data.data
             if ttask.has_result:
-                print(json.loads(ttask.result))
+                # print(json.loads(ttask.result))
                 ctx["sources"]["tasks"]["result"] = json.loads(ttask.result)
             # print(ctx["sources"]["tasks"]["result"])
             ctx["sources"]["tasks"]["task"] = json.loads(ttask.task)
-            ctx["sources"]["title"] = "任务详情"
+            ctx["sources"]["title"] = "Task Detail"
             # print(ctx)
             return render(request, "task/profile.html", ctx)
         else:
@@ -494,7 +502,7 @@ class TaskView(View):
             tasks = models.Task.objects.all()[:20]
             tasks_data = serializers.TaskSerializer(tasks, many=True)
             ctx = const.CONTEXT_ORIGIN
-            ctx["sources"]["title"] = "任务列表"
+            ctx["sources"]["title"] = "Task List"
             ctx["sources"]["tasks"] = tasks_data.data
             ctx["errors"] = []
             return render(request, "task/list.html", ctx)
@@ -503,17 +511,18 @@ class TaskView(View):
 class TestConnectionView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
-        task_data = const.TEST_TASK
-        if id:
+    def get(self, request, agent_id=None):
+        task_data = const.TEST_TASK.copy()
+        task_data["client_list"] = list()
+        if agent_id:
             ctx = const.CONTEXT_ORIGIN
             try:
-                agent = models.Agent.objects.all().get(id=id)
+                agent = models.Agent.objects.all().get(id=agent_id)
             except models.Task.DoesNotExist:
                 ctx["sources"]["title"] = "Server Not Found"
                 ctx["errors"].append(const.AGENT_NOT_FOUND)
                 return render(request, "base.html", ctx)
-            task_data["client_list"].append({"id": agent.id, "ip_address": agent.ip_address})
+            task_data["client_list"] = [({"id": agent.id, "ip_address": agent.ip_address}), ]
             task_id = msgqs.push_task(task_data)
             return redirect("TaskProfile", task_id)
         else:

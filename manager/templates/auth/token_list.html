@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block right %}
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">token</th>
+                    <th scope="col">create_time</th>
+                    <th scope="col">operation</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for i in sources.tokens %}
+                <tr>
+                    <th scope="row">{{ i.id }}</th>
+                    <td>{{ i.key }}</td>
+                    <td>{{ i.create_time }}</td>
+                    <td><a href="{% url 'TokenDelete' i.id %}" class="badge badge-dark">Delete</a></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <a class="btn btn-primary" href="{% url 'GenerateToken' %}" role="button">Generate Token</a>
+        </div>
+    </div>
+
+{% endblock %}

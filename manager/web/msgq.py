@@ -21,6 +21,7 @@ class MessageQ(object):
             try:
                 result = self.queue.blpop("result")
                 objects = json.loads(result[1])
+                print(result)
                 if objects["type"] == "GET":
                     for idx in range(len(objects["result_list"])):
                         if not objects["result_list"][idx]["result"]:
@@ -33,14 +34,15 @@ class MessageQ(object):
                 task.has_result = True
                 task.save()
             except Exception as e:
-                logger.error("error occured while getting task results:", e)
+                logger.error("error occurred while getting task results:\n", e)
 
     def push_task(self, task):
-        tuuid = uuid.uuid1()
-        task["uuid"] = str(tuuid)
+        t_uuid = uuid.uuid1()
+        # print(task)
+        task["uuid"] = str(t_uuid)
         content = json.dumps(task)
-        ttask = models.Task.objects.create(
-            uuid=tuuid,
+        t_task = models.Task.objects.create(
+            uuid=t_uuid,
             task=content,
             types=task["type"]
             )
@@ -56,7 +58,7 @@ class MessageQ(object):
         elif task["type"] == "TEST":
             pass
         self.queue.lpush("task", json.dumps(task))
-        return ttask.id
+        return t_task.id
 
     def get_task_length(self):
         return self.queue.llen("task")

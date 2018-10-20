@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils import timezone
-# from django.contrib.auth.models import User
+import uuid
+import hashlib
+# import base64
+from django.contrib.auth.models import User
 
 
 class ConfigFile(models.Model):
@@ -52,7 +55,7 @@ class Agent(models.Model):
         )
     configs = models.ManyToManyField('ConfigFile', blank=True)
     create_time = models.DateTimeField("create time", default=timezone.now)
-    name = models.CharField("name", max_length=30, default="unamed")
+    name = models.CharField("name", max_length=30, default="unnamed")
 
     def __str__(self):
         return self.ip_address
@@ -65,7 +68,7 @@ class Task(models.Model):
         ("测试服务器连接", "TEST"),
     )
     id = models.AutoField("ID", primary_key=True)
-    uuid = models.UUIDField("uuid")
+    uuid = models.UUIDField("uuid", default=uuid.uuid1)
     task = models.TextField("task content", default="")
     has_result = models.BooleanField("has result", default=False)
     result = models.TextField("task result", default="")
@@ -83,3 +86,31 @@ class Task(models.Model):
 
     def __str__(self):
         return str(self.uuid)
+
+
+def generate_token():
+    t_uuid = str(uuid.uuid1())
+    t_token = hashlib.md5((t_uuid+str(timezone.now())).encode(encoding="utf-8")).digest().hex()
+    return t_token
+
+
+class Token(models.Model):
+
+    id = models.AutoField("ID", primary_key=True)
+    key = models.CharField("token", max_length=50, default=generate_token)
+    create_time = models.DateTimeField("create_time", default=timezone.now)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # name = models.CharField("name", max_length=20, default="")
+
+    def __str__(self):
+        return self.key
+        return self.key
+
+    def generate_token(self):
+        t_uuid = str(uuid.uuid1())
+        t_token = hashlib.md5((t_uuid+str(timezone.now())).encode(encoding="utf-8")).digest().hex()
+        return t_token
+
+    def refresh_token(self):
+        self.key = self.generate_token()
+        return self.key

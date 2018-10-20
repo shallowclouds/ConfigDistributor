@@ -6,3 +6,4 @@ from . import models
 admin.site.register(models.ConfigFile)
 admin.site.register(models.Agent)
 admin.site.register(models.Task)
+admin.site.register(models.Token)

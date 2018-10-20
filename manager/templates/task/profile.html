@@ -12,21 +12,16 @@
         {% endif %}
     </div>
     <div class="card-body">
-        <h6>Result List(Click for detail):</h6>
+        <!--<h6></h6>-->
         {% if sources.tasks.types == "GET" %}
         <div id="accordion">
             {% for i in sources.tasks.task.client_list %}
             <div class="card">
-                <div class="card-header" id="headingOne">
+                <div class="card-header" id="heading{{i.id}}">
                     <h5 class="mb-0">
-                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapse{{i.id}}" aria-expanded="true" aria-controls="collapse{{i.id}}">
                             {{ i.ip_address }}
                             {% if sources.tasks.has_result %}
-                                <!-- {% if i.result %}
-                                    <span class="badge badge-success">Success</span>
-                                {% else %}
-                                    <span class="badge badge-danger">Failed</span>
-                                {% endif %} -->
                             {% else %}
                             <span class="badge badge-info">Pending</span>
                             {% endif %}
@@ -34,7 +29,7 @@
                     </h5>
                 </div>
           
-                <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                <div id="collapse{{i.id}}" class="collapse" aria-labelledby="heading{{i.id}}" data-parent="#accordion">
                     <div class="card-body">
                         {% if sources.tasks.has_result %}
                             {% for result in sources.tasks.result.result_list %}
@@ -44,7 +39,7 @@
                                         <pre class="prettyprint">{{ file.file_content_b64 }}</pre>
                                     {% endfor %}
                                 {% else %}
-                                    fetch config file failed: {{ result.failure_reason }}
+                                    <code>failed</code>: {{ result.failure_reason }}
                                 {% endif %}
                             {% endfor %}
                         {% endif %}
@@ -54,47 +49,91 @@
             {% endfor %}
         </div>
         {% elif sources.tasks.types == "POST" %}
+        <h3>Push config file</h3>
         <div id="accordion">
-            {% for i in sources.tasks.task.client_list %}
-            <div class="card">
-                <div class="card-header" id="headingOne">
-                    <h5 class="mb-0">
-                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne{{i.id}}" aria-expanded="true" aria-controls="collapseOne">
-                            {{ i.ip_address }}
-                            {% if sources.tasks.has_result %}
-                                <!-- {% if i.result %}
-                                    <span class="badge badge-success">Success</span>
+            {% if sources.tasks.has_result %}
+                {% for result in sources.tasks.result.result_list %}
+                <div class="card">
+                    <div class="card-header" id="heading{{result.id}}">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link" data-toggle="collapse" data-target="#collapse{{result.id}}" aria-expanded="true" aria-controls="collapse{{result.id}}">
+                                {{ result.ip_address }}
+                                {% if sources.tasks.has_result %}
                                 {% else %}
-                                    <span class="badge badge-danger">Failed</span>
-                                {% endif %} -->
-                            {% else %}
-                            <span class="badge badge-info">Pending</span>
+                                <span class="badge badge-info">Pending</span>
+                                {% endif %}
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="collapse{{result.id}}" class="collapse" aria-labelledby="heading{{result.id}}" data-parent="#accordion">
+                        <div class="card-body">
+                            {% if sources.tasks.has_result %}
+                                    {% if result.result %}
+                                        {% for file in result.file_list %}
+                                            <p>
+                                            {{ file.remote_path }}:
+                                                {% if file.result %}
+                                                    <code>Success</code>
+                                                {% else %}
+                                                    <code>Failed</code>: {{ file.failure_reason }}
+                                                {% endif %}
+                                            </p>
+                                        {% endfor %}
+                                    {% else %}
+                                        <p>
+                                            <code>Failed</code>: {{ result.failure_reason }}
+                                        </p>
+                                    {% endif %}
                             {% endif %}
-                        </button>
-                    </h5>
-                </div>
-          
-                <div id="collapseOne{{i.id}}" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
-                    <div class="card-body">
-                        {% if sources.tasks.has_result %}
-                            {% for result in sources.tasks.result.result_list %}
-                                {% for file in result.files %}
-                                    {{ file.remote_path }}:
-                                        {% if file.result %}
-                                            <code>Success</code>
-                                        {% else %}
-                                            push config file failed: {{ file.failure_reason }}
-                                        {% endif %}
-                                {% endfor %}
-                            {% endfor %}
-                        {% endif %}
+                        </div>
                     </div>
                 </div>
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% endif %}
         </div>
         {% elif sources.tasks.types == "TEST" %}
-        <h3>TEST</h3>
+        <h3>TEST connection status</h3>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col">id</th>
+                <th scope="col">ip_address</th>
+                <th scope="col">status</th>
+                <th scope="col">latency</th>
+                <th scope="col">info</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% if sources.tasks.has_result %}
+                {% for i in sources.tasks.result.result_list %}
+                <tr>
+                    <th scope="row"><a href="{% url 'TaskProfile' i.id  %}">{{ i.id }}</th>
+                    <th scope="row">{{ i.ip_address }}</th>
+                    <td>
+                        {% if i.result %}
+                            <span class="badge badge-success">Correct</span>
+                        {% else %}
+                            <span class="badge badge-warning">Lost</span>
+                        {% endif %}
+                    <td>{% if i.result %} {{ i.latency }} s {% else %} N/A {% endif %}</td>
+                    <td>{% if not i.result %} {{ i.failure_reason }} {% else %} Normal {% endif %}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                {% for i in sources.tasks.task.client_list %}
+                <tr>
+                    <th scope="row"><a href="{% url 'TaskProfile' i.id  %}">{{ i.id }}</th>
+                    <th scope="row">{{ i.ip_address }}</th>
+                    <td>
+                        <span class="badge badge-info">testing</span>
+                    <td></td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+            </tbody>
+        </table>
         {% endif %}
     </div>
 </div>

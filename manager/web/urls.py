@@ -1,6 +1,7 @@
 from django.urls import path, include
 from . import views
 from django.views.generic import TemplateView
+from . import token
 
 config_urls = [
     path('', views.ConfigListView.as_view(), name="ConfigList"),
@@ -41,7 +42,7 @@ agent_urls = [
     path('push/', views.PushView.as_view(), name="Push"),
     path('push/<int:id>/', views.PushView.as_view(), name="PushById"),
     path('test/', views.TestConnectionView.as_view(), name="TestConnection"),
-    path('test/<int:id>/', views.TestConnectionView.as_view(), name="TestConnectionById"),
+    path('test/<int:agent_id>/', views.TestConnectionView.as_view(), name="TestConnectionById"),
 ]
 
 auth_urls = [
@@ -59,6 +60,9 @@ auth_urls = [
         views.AuthUserDeleteView,
         name="AuthUserDelete",
         ),
+    path('token/generate/', token.generate_token_view, name="GenerateToken"),
+    path('token/', token.TokenView.as_view(), name="TokenList"),
+    path('token/delete/<int:id>/', token.TokenView.as_view(), name="TokenDelete"),
 ]
 
 task_urls = [

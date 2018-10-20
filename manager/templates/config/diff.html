@@ -5,17 +5,19 @@
     <link rel="stylesheet" href="{% static "dist/css/diff_style.css" %}">
 {% endblock %}
 
-{% block right %}
+{% block fluid %}-fluid{% endblock %}
+
+{% block main %}
 <div class="card">
     
     <div class="card-body">
         <h5 class="card-title">Diff Types:</h4>
         <div class="btn-group" id="settings">
-            <label class="btn btn-secondary active">
-                <input type="radio" name="diff_type" autocomplete="off" value="diffChars" checked> Chars
-            </label>
             <label class="btn btn-secondary">
-                <input type="radio" name="diff_type" autocomplete="off" value="diffWords"> Words
+                <input type="radio" name="diff_type" autocomplete="off" value="diffChars"> Chars
+            </label>
+            <label class="btn btn-secondary active">
+                <input type="radio" name="diff_type" autocomplete="off" value="diffWords" checked> Words
             </label>
             <label class="btn btn-secondary">
                 <input type="radio" name="diff_type" autocomplete="off" value="diffLines"> Lines
@@ -84,7 +86,7 @@
         
         function onDiffTypeChange(radio) {
             window.diffType = radio.value;
-            document.title = "Diff " + radio.value.slice(4);
+            // document.title = "Diff " + radio.value.slice(4);
         }
         
         var radio = document.getElementsByName('diff_type');
@@ -97,4 +99,12 @@
         </script>
     </div>
 </div>
+
+<div class="card">
+    
+    <div class="card-body">
+        <a class="btn btn-primary" href="{% url 'ConfigDiffChoose' %}">Return</a>
+    </div>
+</div>
+
 {% endblock %}

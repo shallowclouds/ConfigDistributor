@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block right %}
+<div class="card">
+    <script>
+        function redirectToDiff()
+        {
+            id1 = document.getElementById("ConfigSelect1").value;
+            id2 = document.getElementById("ConfigSelect2").value;
+            window.location = "{% url 'ConfigDiffChoose' %}" + String(id1) + "/" + String(id2) + "/";
+        }
+    </script>
+    <div class="card-header">
+      Diff Config File
+    </div>
+    
+    <div class="card-body">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="ConfigSelect">Choose the first config:</label>
+                <select class="form-control" id="ConfigSelect1" name="config_first">
+                  {% for config in sources.configs %}
+                      <option value="{{ config.id }}"> [{{ config.path }}] - {{ config.name }} </option>
+                  {% endfor %}
+                </select>
+              </div>
+            <div class="form-group">
+              <label for="ConfigSelect">Choose the second config:</label>
+              <select class="form-control" id="ConfigSelect2" name="config_second">
+                {% for config in sources.configs %}
+                    <option value="{{ config.id }}"> [{{ config.path }}] - {{ config.name }} </option>
+                {% endfor %}
+              </select>
+            </div>
+        </form>
+        <button class="btn btn-primary" onclick="redirectToDiff()">Diff</button>
+    </div>
+</div>
+{% endblock %}

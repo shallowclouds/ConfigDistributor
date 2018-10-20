@@ -10,6 +10,7 @@
             <th scope="col">uuid</th>
             <th scope="col">status</th>
             <th scope="col">time</th>
+            <th scope="col">end</th>
         </tr>
         </thead>
         <tbody>
@@ -25,6 +26,7 @@
                     <span class="badge badge-info">Pending</span>
                 {% endif %}
             <td>{{ i.create_time }}</td>
+            <td>{% if i.has_result %} {{ i.complete_time }} {% endif %}</td>
         </tr>
         {% endfor %}
         </tbody>

@@ -13,7 +13,7 @@
     <title>{{ sources.title }}</title>
   </head>
   <body>
-    <div class="container">
+    <div class="container{% block fluid %}{% endblock %}">
       {% block main %}
         <div class="row">
           <div class="col-md-3">
@@ -22,7 +22,13 @@
           <div class="col-md-9">
             {% if errors %}
               {% for error in errors %}
-                  <div class="alert alert-warning" role="alert">{{ error }}</div>
+                <div class="alert alert-warning" role="alert">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+                  
+            {% if infos %}
+              {% for info in infos %}
+                <div class="alert alert-warning" role="info">{{ info }}</div>
               {% endfor %}
             {% endif %}
           {% block right %}
