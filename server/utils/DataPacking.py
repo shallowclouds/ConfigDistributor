@@ -2,6 +2,7 @@ __all__ = ('dict_decrypt', 'dict_encrypt', 'get_key32')
 
 import base64
 import json
+import os
 
 from Crypto.Cipher import ChaCha20
 from Crypto.Random import get_random_bytes
@@ -38,5 +39,6 @@ def file_to_b64str(path: str) -> str:
 
 
 def b64str_to_file(path: str, content: str):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'wb+') as file:
         file.write(base64.b64decode(content.encode()))
