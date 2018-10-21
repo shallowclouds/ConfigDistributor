@@ -22,7 +22,7 @@ class StreamHandler:
 
     def send_attrs(self, attrs: dict):
         data_to_sent = DataPacking.dict_encrypt(attrs, self.key) + b'\n'
-        Logger.info(data_to_sent, level=Logger.DEBUG)
+        # Logger.info(data_to_sent, level=Logger.DEBUG)
         self.writer.write(data_to_sent)
 
 
@@ -80,13 +80,14 @@ async def response_handler(reader: asyncio.StreamReader, writer: asyncio.StreamW
             'failure_reason': str(type(e)).split("'")[1] + ': ' + str(e)
         })
     else:
+        Logger.info(ret, level=Logger.DEBUG)
         handler.send_attrs(ret)
 
 
 def main():
     Logger.set_debug(True)
     loop = asyncio.get_event_loop()
-    coro = asyncio.start_server(response_handler, '127.0.0.1', 8888, loop=loop)
+    coro = asyncio.start_server(response_handler, '0.0.0.0', 8888, loop=loop)
     server = loop.run_until_complete(coro)
 
     # Serve requests until Ctrl+C is pressed
