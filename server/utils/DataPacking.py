@@ -38,5 +38,5 @@ def file_to_b64str(path: str) -> str:
 
 
 def b64str_to_file(path: str, content: str):
-    with open(path, 'wb') as file:
+    with open(path, 'wb+') as file:
         file.write(base64.b64decode(content.encode()))
