@@ -26,7 +26,7 @@ def dict_decrypt(encrypted_json_str: bytes, key: bytes) -> dict:
     nonce = base64.b64decode(encrypted_json['nonce'])
     cipher = ChaCha20.new(key=key, nonce=nonce)
     json_attr = cipher.decrypt(cipher_text)
-    return json.loads(json_attr)
+    return json.loads(json_attr.decode('utf-8'))
 
 
 def get_key32() -> bytes:
