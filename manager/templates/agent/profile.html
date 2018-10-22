@@ -25,7 +25,15 @@
                 </tr>
                 <tr>
                     <th>status</th>
-                    <td>{{ sources.agents.status }}</td>
+                    <td>
+                        {% if sources.agents.status == "Connected" %}
+                            <span class="badge badge-success">Connnected</span>
+                        {% elif sources.agents.status == "Disconnected" %}
+                            <span class="badge badge-warning">Disconnected</span>
+                        {% elif sources.agents.status == "Never Connected" %}
+                            <span class="badge badge-secondary">Never Connected</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 <tr>
                     <th>create_time</th>

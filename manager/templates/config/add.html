@@ -8,6 +8,7 @@
     <div class="card-body">
         <form method="POST">
             {% csrf_token %}
+            <input type="hidden" name="json" value="false">
             <div class="form-group">
                 <label for="namew">Name</label>
                 <input type="text" name="name" class="form-control" id="namew" aria-describedby="name" placeholder="name">
@@ -23,14 +24,31 @@
             <div class="form-group">
                 <label for="inputState">Status</label>
                 <select id="inputState" class="form-control" name="status">
-                    <option selected>未完成</option>
-                    <option>正常</option>
-                    <option>停用</option>
+                    <option selected>Not Completed</option>
+                    <option>Normal</option>
+                    <option>Disabled</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="contentw">Content</label>
                 <textarea name="content" class="form-control" id="contentw" placeholder="content" rows="20"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        Import Config Files from JSON file(<a href="#">JSON file format</a>)
+    </div>
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="json" value="true">
+            <div class="form-group">
+                <label for="JSONFileInput">JSON file</label>
+                <input type="file" class="form-control-file" id="JSONFileInput" name="JSONFile">
             </div>
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>

@@ -1,13 +1,11 @@
-{% load static %}
 <!doctype html>
 <html lang="en">
 <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    {% load static %}
     <link rel="stylesheet" href="{% static "dist/css/bootstrap.min.css" %}">
-    <!-- <link rel="stylesheet" href="{% static "dist/css/sticky-footer.css" %}"> -->
-
     <title>Configure Files Distributor-{{ sources.title }}</title>
 </head>
 <body>
@@ -19,35 +17,39 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        管理平台登录
+                        Manager Login
                     </div>
                     <div class="card-body">
-                        {% if error %}
-                        <div class="alert alert-danger" role="alert">
-                            {% for error_i in error %}
-                                {{ error_i }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                        {% for message in messages %}
+                            {% if message.tags == "error" %}
+                                <div class="alert alert-danger" role="alert">{{ message }}</div>
+                            {% elif message.tags == "info" %}
+                                <div class="alert alert-info" role="alert">{{ message }}</div>
+                            {% elif message.tags == "success" %}
+                                <div class="alert alert-success" role="alert">{{ message }}</div>
+                            {% elif message.tags == "warning" %}
+                                <div class="alert alert-warning" role="alert">{{ message }}</div>
+                            {% endif %}
+                        {% endfor %}
                         <form class="form-horizontal" method="POST">
                             {% csrf_token %}
                             <div class="form-group">
-                                <label for="userName" class="col-sm-3 control-label">账户名称：</label>
+                                <label for="userName" class="col-sm-3 control-label">Username：</label>
                                 <div class="col-sm-9">
-                                    <input type="text" class="form-control" id="userName" placeholder="用户名称"
+                                    <input type="text" class="form-control" id="userName" placeholder="username"
                                            name="username">
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="Password" class="col-sm-3 control-label">账户密码：</label>
+                                <label for="Password" class="col-sm-3 control-label">Password：</label>
                                 <div class="col-sm-9">
-                                    <input type="password" class="form-control" id="Password" placeholder="密码"
+                                    <input type="password" class="form-control" id="Password" placeholder="password"
                                            name="password">
                                 </div>
                             </div>
                             <div class="form-group">
                                 <div class="col-sm-offset-9 col-sm-3">
-                                    <button type="submit" class="btn btn-default "><span class="glyphicon glyphicon-log-in"> 登录</span>
+                                    <button type="submit" class="btn btn-default "><span class="glyphicon glyphicon-log-in"> Login</span>
                                     </button>
                                 </div>
                             </div>
@@ -58,11 +60,6 @@
             <span class="col-md-3"></span>
         </div>
     </div>
-    <!-- <footer class="footer">
-        <div class="container text-center">
-            <span>Web manager written by <a href="mailto:shallowcloud@yeah.net">Yorling</a>.</span>
-        </div>
-    </footer> -->
     <script src="{% static "dist/js/jquery.min.js" %}"></script>
     <script src="{% static "dist/js/bootstrap.min.js" %}"></script>
 </body>

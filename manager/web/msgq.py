@@ -21,15 +21,28 @@ class MessageQ(object):
             try:
                 result = self.queue.blpop("result")
                 objects = json.loads(result[1])
-                print(result)
                 if objects["type"] == "GET":
                     for idx in range(len(objects["result_list"])):
                         if not objects["result_list"][idx]["result"]:
                             continue
                         for idx2 in range(len(objects["result_list"][idx]["file_list"])):
+                            if not objects["result_list"][idx]["file_list"][idx2]["result"]:
+                                continue
                             objects["result_list"][idx]["file_list"][idx2]["file_content_b64"] = base64.b64decode(objects["result_list"][idx]["file_list"][idx2]["file_content_b64"]).decode("utf-8")
-                tuuid = objects["uuid"]
-                task = models.Task.objects.all().get(uuid=tuuid)
+                elif objects["type"] == "TEST":
+                    objects["result_list"].sort(key=lambda x: x["id"])
+                    for result in objects["result_list"]:
+                        try:
+                            cur_agent = models.Agent.objects.all().get(id=result["id"])
+                        except models.Agent.DoesNotExist:
+                            continue
+                        if result["result"]:
+                            cur_agent.status = "Connected"
+                        else:
+                            cur_agent.status = "Disconnected"
+                        cur_agent.save()
+                t_uuid = objects["uuid"]
+                task = models.Task.objects.all().get(uuid=t_uuid)
                 task.result = json.dumps(objects)
                 task.has_result = True
                 task.save()
@@ -38,7 +51,7 @@ class MessageQ(object):
 
     def push_task(self, task):
         t_uuid = uuid.uuid1()
-        # print(task)
+        print(task)
         task["uuid"] = str(t_uuid)
         content = json.dumps(task)
         t_task = models.Task.objects.create(

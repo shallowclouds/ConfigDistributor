@@ -6,13 +6,13 @@
     <div class="card-header">
         Task '{{ sources.tasks.types }}' UUID: {{ sources.tasks.uuid }}
         {% if sources.tasks.has_result %}
-        <span class="badge badge-success">Success</span>
+        <span class="badge badge-success">Task Complete</span>
         {% else %}
         <span class="badge badge-info">Pending</span>
         {% endif %}
     </div>
     <div class="card-body">
-        <!--<h6></h6>-->
+        <div><a class="btn btn-outline-primary" href="{% url 'TaskRedo' sources.tasks.id %}" role="button">Redo This Task</a></div>
         {% if sources.tasks.types == "GET" %}
         <div id="accordion">
             {% for i in sources.tasks.task.client_list %}
@@ -35,12 +35,21 @@
                             {% for result in sources.tasks.result.result_list %}
                                 {% if result.result %}
                                     {% for file in result.file_list %}
-                                        {{ file.path }}:
-                                        <pre class="prettyprint">{{ file.file_content_b64 }}</pre>
+                                        <p>
+                                        {% if file.result %}
+                                            {{ file.path }}:
+                                            <pre class="prettyprint">{{ file.file_content_b64 }}</pre>
+                                        {% else %}
+                                            <code>failed</code>: {{ file.failure_reason }}
+                                        {% endif %}
+                                        </p>
                                     {% endfor %}
                                 {% else %}
-                                    <code>failed</code>: {{ result.failure_reason }}
+                                <p>
+                                    <code>failed</code>: {{ result.failure_reason }}<br>
+                                 </p>
                                 {% endif %}
+
                             {% endfor %}
                         {% endif %}
                     </div>
@@ -112,12 +121,12 @@
                     <th scope="row">{{ i.ip_address }}</th>
                     <td>
                         {% if i.result %}
-                            <span class="badge badge-success">Correct</span>
+                            <span class="badge badge-success">Connected</span>
                         {% else %}
-                            <span class="badge badge-warning">Lost</span>
+                            <span class="badge badge-warning">Disconnected</span>
                         {% endif %}
                     <td>{% if i.result %} {{ i.latency }} s {% else %} N/A {% endif %}</td>
-                    <td>{% if not i.result %} {{ i.failure_reason }} {% else %} Normal {% endif %}</td>
+                    <td><button type="button" class="btn btn-sm btn-info" onclick="alert('{% if not i.result %} {{ i.failure_reason | addslashes }} {% else %} This server connected normally. {% endif %}')">more info</button></td>
                 </tr>
                 {% endfor %}
             {% else %}

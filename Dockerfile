@@ -28,6 +28,7 @@ RUN python3 manager/manage.py collectstatic --noinput && \
     python3 manager/manage.py loaddata init_users
 
 EXPOSE 80
+EXPOSE
 
 CMD ["supervisord", "-n"]
 

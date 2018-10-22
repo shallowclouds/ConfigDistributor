@@ -1,0 +1,20 @@
+{
+    "data":
+        [
+            {
+                "name": "json_upload_test1",
+                "description": "this is a example file for testing import configs from file.",
+                "path": "/home/yorling/config.json",
+                "status": "Not Completed",
+                "content": "{\n    \"name\":\"test\"\n}\n"
+            },
+            {
+                "name": "json_upload_test2",
+                "description": "this is a example file for testing import configs from file.",
+                "path": "/home/yorling/config2.json",
+                "status": "Normal",
+                "content": "{\n    \"name\":\"test1\"\n}\n"
+            }
+        ]
+}
+

@@ -12,8 +12,11 @@ from manager import const
 
 from . import models, serializers
 from . import msgq
+import logging
+from django.contrib import messages
 
 msgqs = msgq.MessageQ()
+logger = logging.getLogger(__name__)
 
 
 class ConfigListView(View):
@@ -33,14 +36,12 @@ class ConfigListView(View):
 class ConfigProfileView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id):
+    def get(self, request, config_id):
         try:
-            query = models.ConfigFile.objects.get(id=id)
+            query = models.ConfigFile.objects.get(id=config_id)
         except models.ConfigFile.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Config Detail"},
-                "errors": [const.CONFIG_NOT_FOUND, ]
-                })
+            messages.error(request, const.CONFIG_NOT_FOUND)
+            return redirect("ConfigList")
         res = serializers.ConfigSerializer(query)
         return render(
             request,
@@ -61,28 +62,52 @@ class ConfigAddView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request):
-        config = models.ConfigFile(
-            name=request.POST["name"],
-            status=request.POST["status"],
-            description=request.POST["description"],
-            path=request.POST["path"],
-            contents=request.POST["content"]
-            )
-        config.save()
-        return redirect("ConfigProfile", config.id)
+        if request.POST["json"] == "false":
+            config = models.ConfigFile(
+                name=request.POST["name"],
+                status=request.POST["status"],
+                description=request.POST["description"],
+                path=request.POST["path"],
+                contents=request.POST["content"]
+                )
+            config.save()
+            messages.success(request, "Successfully add one config.")
+            return redirect("ConfigProfile", config.id)
+        else:
+            try:
+                configs_content = request.FILES["JSONFile"].read().decode("utf-8")
+                configs_data = json.loads(configs_content)
+                success_configs = list()
+                for config_ in configs_data["data"]:
+                    new_config = models.ConfigFile(
+                        name=config_["name"],
+                        status=config_["status"],
+                        description=config_["description"],
+                        path=config_["path"],
+                        contents=config_["content"]
+                        )
+                    success_configs.append(new_config)
+            except Exception as e:
+                logger.error("Error occurred while import configs from json file:"+str(e))
+                ctx = dict(const.CONTEXT_ORIGIN)
+                ctx["sources"]["title"] = "File Format Not correct"
+                messages.warning(request, 'Errors occurred while parsing json file, Please check the json file.')
+                return redirect("ConfigAdd")
+            for config_ in success_configs:
+                config_.save()
+            messages.success(request, "Successfully add {config_count} configs".format(config_count=len(success_configs)))
+            return redirect("ConfigList")
 
 
 class ConfigEditView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id):
+    def get(self, request, config_id):
         try:
-            query = models.ConfigFile.objects.get(id=id)
+            query = models.ConfigFile.objects.get(id=config_id)
         except models.ConfigFile.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Config Not Found"},
-                "errors": [const.CONFIG_NOT_FOUND, ]
-                })
+            messages.error(request, const.CONFIG_NOT_FOUND)
+            return redirect("ConfigList")
         res = serializers.ConfigSerializer(query)
         return render(
             request,
@@ -91,32 +116,31 @@ class ConfigEditView(View):
             )
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id):
+    def post(self, request, config_id):
         try:
-            config = models.ConfigFile.objects.get(id=id)
+            config = models.ConfigFile.objects.get(id=config_id)
         except models.ConfigFile.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Config Not Found"},
-                "errors": [const.CONFIG_NOT_FOUND, ]})
+            messages.error(request, const.CONFIG_NOT_FOUND)
+            return redirect("ConfigList")
         config.name = request.POST["name"]
         config.description = request.POST["description"]
         config.path = request.POST["path"]
         config.contents = request.POST["content"]
         config.status = request.POST["status"]
         config.save()
-        return redirect("ConfigProfile", id)
+        messages.success(request, "Successfully updated config's profile.")
+        return redirect("ConfigProfile", config_id)
 
 
 class ConfigDeleteView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id):
+    def get(self, request, config_id):
         try:
-            query = models.ConfigFile.objects.get(id=id)
+            query = models.ConfigFile.objects.get(id=config_id)
         except models.ConfigFile.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Config Not Found"},
-                "errors": [const.CONFIG_NOT_FOUND, ]})
+            messages.error(request, const.CONFIG_NOT_FOUND)
+            return redirect("ConfigList")
         res = serializers.ConfigSerializer(query)
         return render(request, "config/delete.html", {
             "sources": {
@@ -125,14 +149,14 @@ class ConfigDeleteView(View):
                 })
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id):
+    def post(self, request, config_id):
         try:
-            config = models.ConfigFile.objects.get(id=id)
+            config = models.ConfigFile.objects.get(id=config_id)
         except models.ConfigFile.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Config Not Found"},
-                "errors": [const.CONFIG_NOT_FOUND, ]})
+            messages.error(request, const.CONFIG_NOT_FOUND)
+            return redirect("ConfigList")
         config.delete()
+        messages.success(request, const.CONFIG_SUCCESSFULLY_DELETED)
         return redirect("ConfigList")
 
 
@@ -172,15 +196,15 @@ class AgentListView(View):
         res = serializers.AgentSerializer(query, many=True)
         res = res.data
         return render(request, "agent/list.html", {
-            "sources": {"title": "服务器列表", "agents": res}})
+            "sources": {"title": "Server List", "agents": res}})
 
 
 class AgentProfileView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id):
+    def get(self, request, agent_id):
         try:
-            query = models.Agent.objects.get(id=id)
+            query = models.Agent.objects.get(id=agent_id)
         except models.Agent.DoesNotExist:
             return render(request, "base.html", {
                 "sources": {"title": "Server Not Found"},
@@ -204,7 +228,6 @@ class AgentAddView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def post(self, request):
-        # print(request.POST.getlist("configs[]"))
         agent = models.Agent(
             name=request.POST["name"],
             status=request.POST["status"],
@@ -212,26 +235,26 @@ class AgentAddView(View):
             )
         agent.save()
         configs = request.POST.getlist("configs[]")
-        for id in configs:
+        for config_id in configs:
             try:
-                config = models.ConfigFile.objects.get(id=id)
+                config = models.ConfigFile.objects.get(id=config_id)
             except models.ConfigFile.DoesNotExist:
                 continue
             agent.configs.add(config)
         agent.save()
+        messages.success(request, const.AGENT_SUCCESSFULLY_ADDED)
         return redirect("AgentProfile", agent.id)
 
 
 class AgentDeleteView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id):
+    def get(self, request, agent_id):
         try:
-            query = models.Agent.objects.get(id=id)
+            query = models.Agent.objects.get(id=agent_id)
         except models.Agent.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Config Not Found"},
-                "errors": [const.AGENT_NOT_FOUND, ]})
+            messages.error(request, const.AGENT_NOT_FOUND)
+            return redirect("AgentList")
         res = serializers.AgentSerializer(query)
         return render(request, "agent/delete.html", {
             "sources": {
@@ -240,31 +263,28 @@ class AgentDeleteView(View):
                 })
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id):
+    def post(self, request, agent_id):
         try:
-            agent = models.Agent.objects.get(id=id)
+            agent = models.Agent.objects.get(id=agent_id)
         except models.Agent.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Server Not Found"},
-                "errors": [const.AGENT_NOT_FOUND, ]
-            })
+            messages.error(request, const.AGENT_NOT_FOUND)
+            return redirect("AgentList")
         agent.delete()
+        messages.success(request, const.AGENT_SUCCESSFULLY_DELETED)
         return redirect("AgentList")
 
 
 class AgentEditView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id):
+    def get(self, request, agent_id):
         config = models.ConfigFile.objects.all()
         configs = serializers.ConfigSerializerForAgent(config, many=True)
         try:
-            agent = models.Agent.objects.get(id=id)
+            agent = models.Agent.objects.get(id=agent_id)
         except models.Agent.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Server Not Found"},
-                "errors": [const.AGENT_NOT_FOUND, ]
-            })
+            messages.error(request, const.AGENT_NOT_FOUND)
+            return redirect("AgentList")
         res = serializers.AgentSerializer(agent)
         return render(request, "agent/edit.html", {
             "sources": {
@@ -275,27 +295,26 @@ class AgentEditView(View):
         })
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id):
+    def post(self, request, agent_id):
         new_configs = request.POST.getlist("configs[]")
         try:
-            agent = models.Agent.objects.get(id=id)
+            agent = models.Agent.objects.get(id=agent_id)
         except models.Agent.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Server Not Found"},
-                "errors": [const.AGENT_NOT_FOUND, ]
-            })
+            messages.error(request, const.AGENT_NOT_FOUND)
+            return redirect("AgentList")
         agent.name = request.POST["name"]
         agent.ip_address = request.POST["ip_address"]
         agent.status = request.POST["status"]
         agent.save()
         new_config_list = list()
-        for id in new_configs:
+        for agent_id in new_configs:
             try:
-                config = models.ConfigFile.objects.get(id=id)
+                config = models.ConfigFile.objects.get(id=agent_id)
             except models.ConfigFile.DoesNotExist:
                 continue
             new_config_list.append(config)
         agent.configs.set(new_config_list)
+        messages.success(request, const.AGENT_SUCCESSFULLY_UPDATED)
         return redirect("AgentProfile", agent.id)
 
 
@@ -316,16 +335,17 @@ class AuthLoginView(View):
                 password=request.POST["password"])
             if auth_res and auth_res.is_active:
                 auth.login(request, auth_res)
+                messages.info(request, const.USER_WELCOME_TIP)
                 if "next" in request.GET:
                     return HttpResponseRedirect(request.GET["next"])
                 else:
                     return HttpResponseRedirect(reverse("ConfigList"))
             else:
-                return render(request, "auth/login.html", {
-                    "error": [const.LOGIN_ERROR_TIP]})
+                messages.error(request, const.LOGIN_ERROR_TIP)
+                return redirect("AuthLogin")
         else:
-            return render(request, "auth/login.html", {
-                "error": [const.LOGIN_ERROR_EMPTY_TIP]})
+            messages.error(request, const.LOGIN_ERROR_EMPTY_TIP)
+            return redirect("AuthLogin")
 
 
 class AuthLogoutView(View):
@@ -339,10 +359,10 @@ class AuthLogoutView(View):
 class AuthUserView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
+    def get(self, request, user_id=None):
         ctx = const.CONTEXT_ORIGIN
 
-        if id is None:
+        if user_id is None:
             users = User.objects.all()
             users_list = serializers.UserSerializer(users, many=True)
             ctx["sources"] = {
@@ -352,7 +372,7 @@ class AuthUserView(View):
             return render(request, "auth/user_list.html", ctx)
 
         try:
-            user = User.objects.get(id=id)
+            user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             ctx["sources"]["title"] = "用户不存在-404"
             ctx["errors"] = [const.USER_NOT_FOUND, ]
@@ -365,8 +385,8 @@ class AuthUserView(View):
         return render(request, "auth/user_profile.html", ctx)
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id=None):
-        if id is None:
+    def post(self, request, user_id=None):
+        if user_id is None:
             # add user
             new_user = User.objects.create_superuser(
                 request.POST["username"],
@@ -377,7 +397,7 @@ class AuthUserView(View):
 
         ctx = const.CONTEXT_ORIGIN
         try:
-            user = User.objects.get(id=id)
+            user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             ctx["sources"]["title"] = "User Not Found"
             ctx["errors"] = [const.USER_NOT_FOUND, ]
@@ -391,10 +411,10 @@ class AuthUserView(View):
 
 
 @login_required(login_url="AuthLogin")
-def AuthUserDeleteView(request, id):
+def AuthUserDeleteView(request, user_id):
     ctx = const.CONTEXT_ORIGIN
     try:
-        user = User.objects.get(id=id)
+        user = User.objects.get(id=user_id)
     except User.DoesNotExist:
         ctx["sources"]["title"] = "User Not Found"
         ctx["errors"] = [const.USER_NOT_FOUND, ]
@@ -406,11 +426,11 @@ def AuthUserDeleteView(request, id):
 class PushView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
+    def get(self, request, agent_id=None):
         ctx = const.CONTEXT_ORIGIN
-        if id:
+        if agent_id:
             try:
-                agent = models.Agent.objects.all().get(id=id)
+                agent = models.Agent.objects.all().get(id=agent_id)
             except models.Agent.DoesNotExist:
                 ctx["errors"].append(const.AGENT_NOT_FOUND)
                 return render(request, "base.html", ctx)
@@ -437,31 +457,30 @@ class PushView(View):
             return render(request, "task/push_task.html", ctx)
 
     @method_decorator(login_required(login_url="AuthLogin"))
-    def post(self, request, id=None):
+    def post(self, request):
         config_id_list = request.POST.getlist("configs[]")
         agent_id_list = request.POST.getlist("agents[]")
-        configs = [models.ConfigFile.objects.all().get(id=id) for id in config_id_list]
-        agents = [models.Agent.objects.all().get(id=id) for id in agent_id_list]
+        configs = [models.ConfigFile.objects.all().get(id=t_id) for t_id in config_id_list]
+        agents = [models.Agent.objects.all().get(id=t_id) for t_id in agent_id_list]
         task_data = {
             "type": "POST",
             "client_list": [{"id": agent.id, "ip_address": agent.ip_address} for agent in agents],
             "file_list": [{"remote_path": config.path, "file_content_b64": config.contents} for config in configs],
         }
-        # print(task_data)
-        taskid = msgqs.push_task(task_data)
-        return redirect("TaskProfile", id=taskid)
+        task_id = msgqs.push_task(task_data)
+        return redirect("TaskProfile", task_id)
 
 
 class PullView(View):
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
+    def get(self, request, agent_id=None):
         ctx = const.CONTEXT_ORIGIN
         try:
-            agent = models.Agent.objects.all().get(id=id)
+            agent = models.Agent.objects.all().get(id=agent_id)
         except models.Agent.DoesNotExist:
             ctx["sources"]["title"] = "Server Not Found"
             ctx["errors"] = [const.AGENT_NOT_FOUND]
-            return (request, "base.html", ctx)
+            return render(request, "base.html", ctx)
         task = dict()
         task["type"] = "GET"
         task["client_list"] = [{
@@ -471,29 +490,29 @@ class PullView(View):
         task["remote_path"] = []
         for config in agent.configs.all():
             task["remote_path"].append(config.path)
-        tid = msgqs.push_task(task)
-        return redirect("TaskProfile", id=tid)
+        task_id = msgqs.push_task(task)
+        return redirect("TaskProfile", task_id)
 
 
 class TaskView(View):
     @method_decorator(login_required(login_url="AuthLogin"))
-    def get(self, request, id=None):
-        if id:
+    def get(self, request, task_id=None):
+        if task_id:
             msgqs.get_results()
-            ctx = const.CONTEXT_ORIGIN
+            ctx = dict(const.CONTEXT_ORIGIN)
             try:
-                ttask = models.Task.objects.all().get(id=id)
+                cur_task = models.Task.objects.all().get(id=task_id)
             except models.Task.DoesNotExist:
                 ctx["sources"]["title"] = "Task Not Found"
                 ctx["errors"] = [const.TASK_NOT_FOUND]
                 return render(request, "base.html", ctx)
-            task_data = serializers.TaskSerializer(ttask)
+            task_data = serializers.TaskSerializer(cur_task)
             ctx["sources"]["tasks"] = task_data.data
-            if ttask.has_result:
-                # print(json.loads(ttask.result))
-                ctx["sources"]["tasks"]["result"] = json.loads(ttask.result)
+            if cur_task.has_result:
+                # print(json.loads(cur_task.result))
+                ctx["sources"]["tasks"]["result"] = json.loads(cur_task.result)
             # print(ctx["sources"]["tasks"]["result"])
-            ctx["sources"]["tasks"]["task"] = json.loads(ttask.task)
+            ctx["sources"]["tasks"]["task"] = json.loads(cur_task.task)
             ctx["sources"]["title"] = "Task Detail"
             # print(ctx)
             return render(request, "task/profile.html", ctx)
@@ -512,7 +531,7 @@ class TestConnectionView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request, agent_id=None):
-        task_data = const.TEST_TASK.copy()
+        task_data = dict(const.TEST_TASK)
         task_data["client_list"] = list()
         if agent_id:
             ctx = const.CONTEXT_ORIGIN
@@ -531,3 +550,16 @@ class TestConnectionView(View):
                 task_data["client_list"].append({"id": agent.id, "ip_address": agent.ip_address})
             task_id = msgqs.push_task(task_data)
             return redirect("TaskProfile", task_id)
+
+
+@login_required(login_url="AuthLogin")
+def redo_task_view(request, task_id):
+    try:
+        cur_task = models.Task.objects.all().get(id=task_id)
+    except models.Task.DoesNotExist:
+        ctx = dict(const.CONTEXT_ORIGIN)
+        ctx["errors"].append(const.TASK_NOT_FOUND)
+        ctx["title"] = "Error"
+        return render(request, "base.html", ctx)
+    new_task_id = msgqs.push_task(json.loads(cur_task.task))
+    return redirect('TaskProfile', new_task_id)

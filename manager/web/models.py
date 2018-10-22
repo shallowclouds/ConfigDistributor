@@ -9,9 +9,9 @@ from django.contrib.auth.models import User
 class ConfigFile(models.Model):
 
     STATUS_CHOICES = (
-        ("正常", "正常"),
-        ("未完成", "未完成"),
-        ("停用", "停用"),
+        ("Normal", "Normal"),
+        ("Not Completed", "Not Completed"),
+        ("Disabled", "Disabled"),
     )
 
     id = models.AutoField("ID", primary_key=True)
@@ -20,7 +20,7 @@ class ConfigFile(models.Model):
         "status",
         max_length=20,
         choices=STATUS_CHOICES,
-        default="正常"
+        default="Not Completed"
         )
     contents = models.TextField("contents", default="")
     create_time = models.DateTimeField("create time", default=timezone.now)
@@ -36,9 +36,9 @@ class ConfigFile(models.Model):
 class Agent(models.Model):
 
     STATUS_CHOICES = (
-        ("正常", "正常"),
-        ("连接断开", "连接断开"),
-        ("未连接", "未连接"),
+        ("Connected", "Connected"),
+        ("Disconnected", "Disconnected"),
+        ("Never Connected", "Never Connected"),
     )
 
     id = models.AutoField("ID", primary_key=True)
@@ -51,7 +51,7 @@ class Agent(models.Model):
         "status",
         max_length=20,
         choices=STATUS_CHOICES,
-        default="未连接"
+        default="Never Connected"
         )
     configs = models.ManyToManyField('ConfigFile', blank=True)
     create_time = models.DateTimeField("create time", default=timezone.now)
@@ -63,9 +63,9 @@ class Agent(models.Model):
 
 class Task(models.Model):
     TYPE_CHOICES = (
-        ("查看服务器配置文件", "GET"),
-        ("推送服务器文件", "POST"),
-        ("测试服务器连接", "TEST"),
+        ("Inspect Configs", "GET"),
+        ("Push Configs", "POST"),
+        ("Test Connections", "TEST"),
     )
     id = models.AutoField("ID", primary_key=True)
     uuid = models.UUIDField("uuid", default=uuid.uuid1)

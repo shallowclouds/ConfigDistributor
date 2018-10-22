@@ -1,24 +1,26 @@
 {% extends "base.html" %}
 
 {% block right %}
-
-    <table class="table table-striped">
-        <thead>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">username</th>
-            <th scope="col">email</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for i in sources.users %}
-        <tr>
-            <th scope="row"><a href="{% url 'AuthUserById' i.id  %}">{{ i.id }}</th>
-            <td><a href="{% url 'AuthUserById' i.id  %}">{{ i.username }}</a></td>
-            <td>{{ i.email }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">username</th>
+                <th scope="col">email</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for i in sources.users %}
+            <tr>
+                <th scope="row"><a href="{% url 'AuthUserById' i.id  %}">{{ i.id }}</th>
+                <td><a href="{% url 'AuthUserById' i.id  %}">{{ i.username }}</a></td>
+                <td>{{ i.email }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

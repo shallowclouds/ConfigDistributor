@@ -7,7 +7,7 @@
     </div>
     
     <div class="card-body">
-        <form method="POST">
+        <form method="POST" action="{% url 'Push' %}">
             {% csrf_token %}
             <div class="form-group">
               <label for="AgentSelect">Agent select(use Ctrl to select multiple)</label>
