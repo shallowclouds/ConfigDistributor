@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/', include('apis.urls')),
 ]
 
+# if in DEBUG mode, then add admin site for debug
 if settings.DEBUG:
     urlpatterns += static(
         settings.STATIC_URL, 

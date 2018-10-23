@@ -1,12 +1,14 @@
 from django.db import models
 from django.utils import timezone
+from .utils import generate_token
 import uuid
-import hashlib
-# import base64
 from django.contrib.auth.models import User
 
 
 class ConfigFile(models.Model):
+    """config file model class
+
+    """
 
     STATUS_CHOICES = (
         ("Normal", "Normal"),
@@ -34,6 +36,9 @@ class ConfigFile(models.Model):
 
 
 class Agent(models.Model):
+    """agent model class(server)
+
+    """
 
     STATUS_CHOICES = (
         ("Connected", "Connected"),
@@ -62,6 +67,10 @@ class Agent(models.Model):
 
 
 class Task(models.Model):
+    """task model class
+
+    """
+
     TYPE_CHOICES = (
         ("Inspect Configs", "GET"),
         ("Push Configs", "POST"),
@@ -88,13 +97,10 @@ class Task(models.Model):
         return str(self.uuid)
 
 
-def generate_token():
-    t_uuid = str(uuid.uuid1())
-    t_token = hashlib.md5((t_uuid+str(timezone.now())).encode(encoding="utf-8")).digest().hex()
-    return t_token
-
-
 class Token(models.Model):
+    """token model class
+    this model class is for RESTful API authentication
+    """
 
     id = models.AutoField("ID", primary_key=True)
     key = models.CharField("token", max_length=50, default=generate_token)
@@ -104,13 +110,7 @@ class Token(models.Model):
 
     def __str__(self):
         return self.key
-        return self.key
-
-    def generate_token(self):
-        t_uuid = str(uuid.uuid1())
-        t_token = hashlib.md5((t_uuid+str(timezone.now())).encode(encoding="utf-8")).digest().hex()
-        return t_token
 
     def refresh_token(self):
-        self.key = self.generate_token()
+        self.key = generate_token()
         return self.key

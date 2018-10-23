@@ -11,6 +11,11 @@ from . import models, serializers
 
 @login_required(login_url="AuthLogin")
 def generate_token_view(request):
+    """
+    generate a token for the user
+    :param request: http request of django
+    :return: response of redirecting token list
+    """
     token_ = models.Token(user=request.user)
     token_.refresh_token()
     token_.save()
@@ -18,6 +23,9 @@ def generate_token_view(request):
 
 
 class TokenView(View):
+    """
+    get: if has token id then delete the token identified by the token id, else show the list of all tokens
+    """
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request, token_id=None):

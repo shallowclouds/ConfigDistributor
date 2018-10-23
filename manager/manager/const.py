@@ -14,6 +14,8 @@ AGENT_SUCCESSFULLY_ADDED = "Successfully added agent."
 USER_NOT_FOUND = "User not found."
 
 USER_WELCOME_TIP = "Welcome"
+USER_PASSWORD_INVALID = "the password is not valid, please make sure the length is more than 8."
+USER_SUCCESSFULLY_UPDATED = "the profile of the user has successfully been updated."
 
 TASK_NOT_FOUND = "Task not found or already deleted."
 
