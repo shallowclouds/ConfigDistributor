@@ -612,7 +612,7 @@ class TaskView(View):
 class TestConnectionView(View):
     """View for testing connection of the servers
     get: if has agent id then test the connection of the server, else test all servers' connection,
-         add TEST task to task queue.
+    add TEST task to task queue.
     """
 
     @method_decorator(login_required(login_url="AuthLogin"))

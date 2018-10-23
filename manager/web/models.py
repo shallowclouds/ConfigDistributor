@@ -112,5 +112,9 @@ class Token(models.Model):
         return self.key
 
     def refresh_token(self):
+        """
+        get new token value
+        :return: token value
+        """
         self.key = generate_token()
         return self.key

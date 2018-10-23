@@ -9,18 +9,29 @@ logger = logging.getLogger(__name__)
 
 
 class MessageQ(object):
+    """Message Queue Class
+    put tasks to the redis list: task
+    get results from the redis list: result
+    """
 
     def __init__(self):
+        """
+        init the redis host
+        """
         self.queue = redis.Redis(
             host=settings.REDIS_HOST,
             port=settings.REDIS_PORT
             )
 
     def get_results(self):
+        """
+        get results from redis list 'result' as a message queue
+        :return: None
+        """
         while self.get_result_length() > 0:
             try:
                 result = self.queue.blpop("result")
-                objects = json.loads(result[1])
+                objects = json.loads(result[1].decode('utf-8'))
                 if objects["type"] == "GET":
                     for idx in range(len(objects["result_list"])):
                         if not objects["result_list"][idx]["result"]:
@@ -50,6 +61,11 @@ class MessageQ(object):
                 logger.error("error occurred while getting task results:\n", e)
 
     def push_task(self, task):
+        """
+        push tasks to the redis list 'task' as a message queue
+        :param task: the task which will be pushed into message queue
+        :return: the task's id
+        """
         t_uuid = uuid.uuid1()
         print(task)
         task["uuid"] = str(t_uuid)
@@ -62,6 +78,7 @@ class MessageQ(object):
         if task["type"] == "GET":
             pass
         elif task["type"] == "POST":
+            # base64 encode the file content
             for idx in range(len(task["file_list"])):
                 task["file_list"][idx]["file_content_b64"] = base64.b64encode(
                     bytes(
@@ -74,7 +91,15 @@ class MessageQ(object):
         return t_task.id
 
     def get_task_length(self):
+        """
+        get task queue length
+        :return: the length of the task queue
+        """
         return self.queue.llen("task")
 
     def get_result_length(self):
+        """
+        get result queue length
+        :return: the length of the result queue
+        """
         return self.queue.llen("result")

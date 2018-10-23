@@ -66,7 +66,7 @@ def main(general_settings: dict):
     queue = redis.Redis()
     while True:
         try:
-            task = json.loads(queue.blpop('task')[1])
+            task = json.loads(queue.blpop('task')[1].decode("utf-8"))
             Logger.info(task, level=Logger.DEBUG)
             client_list = task.pop("client_list")
             result = WebHandlers.pass_attrs_to_clients(task, client_list, general_settings['key'],
