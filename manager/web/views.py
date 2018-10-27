@@ -240,9 +240,7 @@ class AgentProfileView(View):
         try:
             query = models.Agent.objects.get(id=agent_id)
         except models.Agent.DoesNotExist:
-            return render(request, "base.html", {
-                "sources": {"title": "Server Not Found"},
-                "errors": [const.AGENT_NOT_FOUND, ]})
+            return redirect_error_view(request, "AgentList", const.AGENT_NOT_FOUND)
         res = serializers.AgentSerializer(query)
         return render(request, "agent/profile.html", {"sources": {
             "title": "Server List",
@@ -486,13 +484,10 @@ def auth_user_delete_view(request, user_id):
     :param user_id: the user's id
     :return: response of redirecting to user list
     """
-    ctx = const.CONTEXT_ORIGIN
     try:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
-        ctx["sources"]["title"] = "User Not Found"
-        ctx["errors"] = [const.USER_NOT_FOUND, ]
-        return render(request, "base.html", ctx)
+        return redirect_error_view(request, "UserList", const.USER_NOT_FOUND)
     user.delete()
     return redirect("AuthUser")
 
@@ -510,8 +505,7 @@ class PushView(View):
             try:
                 agent = models.Agent.objects.all().get(id=agent_id)
             except models.Agent.DoesNotExist:
-                ctx["errors"].append(const.AGENT_NOT_FOUND)
-                return render(request, "base.html", ctx)
+                return redirect_error_view(request, "AgentList", const.AGENT_NOT_FOUND)
             configs = agent.configs.all()
             ctx["sources"]["title"] = "Push Configs"
             ctx["sources"]["configs"] = serializers.ConfigSerializer(
@@ -556,13 +550,10 @@ class PullView(View):
 
     @method_decorator(login_required(login_url="AuthLogin"))
     def get(self, request, agent_id=None):
-        ctx = const.CONTEXT_ORIGIN
         try:
             agent = models.Agent.objects.all().get(id=agent_id)
         except models.Agent.DoesNotExist:
-            ctx["sources"]["title"] = "Server Not Found"
-            ctx["errors"] = [const.AGENT_NOT_FOUND]
-            return render(request, "base.html", ctx)
+            return redirect_error_view(request, "AgentList", const.AGENT_NOT_FOUND)
         task = dict()
         task["type"] = "GET"
         task["client_list"] = [{
@@ -620,7 +611,6 @@ class TestConnectionView(View):
         task_data = dict(const.TEST_TASK)
         task_data["client_list"] = list()
         if agent_id:
-            ctx = const.CONTEXT_ORIGIN
             try:
                 agent = models.Agent.objects.all().get(id=agent_id)
             except models.Task.DoesNotExist:
@@ -647,9 +637,6 @@ def redo_task_view(request, task_id):
     try:
         cur_task = models.Task.objects.all().get(id=task_id)
     except models.Task.DoesNotExist:
-        ctx = dict(const.CONTEXT_ORIGIN)
-        ctx["errors"].append(const.TASK_NOT_FOUND)
-        ctx["title"] = "Error"
-        return render(request, "base.html", ctx)
+        return redirect_error_view(request, "TaskList", const.TASK_NOT_FOUND)
     new_task_id = msgqs.push_task(json.loads(cur_task.task))
     return redirect('TaskProfile', new_task_id)

@@ -1,7 +1,7 @@
 from django.conf.urls import url, include
 from rest_framework import routers
 from . import views
-# from tutorial.quickstart import views
+
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
@@ -13,5 +13,7 @@ router.register(r'tasks', views.TaskViewSet)
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     url(r'^', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^login/', views.login),
+    url(r'^new_task', views.create_new_task),
 ]

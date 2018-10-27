@@ -23,8 +23,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 't)zxf=^+p^xv=*+ug^=utr@%l5dgvz85uosvvyt(c%3@0pu71-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-# DEBUG = True
+# DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -39,9 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    # 'django_crontab',
-    # 'background_task',
-    # 'rest_framework.authtoken',
+    'rest_framework.authtoken',
     'manager',
     'apis',
     'web',
@@ -205,8 +203,11 @@ REDIS_PORT = 6379
 # REST framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.BasicAuthentication',
+        # 'rest_framework.authentication.BasicAuthentication',
         'web.authentication.SimpleTokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    )
+        # 'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
