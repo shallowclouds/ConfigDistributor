@@ -9,7 +9,7 @@ a system to distribute configure files using Django and python.
 
 1. 运行环境
    * Linux 32 / 64
-   * python 3.5+
+   * python 3.6+
    * nginx
    * docker(如果使用 docker 部署的话)
 2. 部署及使用说明
@@ -34,11 +34,11 @@ a system to distribute configure files using Django and python.
 
 此模块采用 python 编写，用于搭建分发管理配置文件的服务端，配置文件将通过此模块分发。
 
-基于 pyuv 的跨平台异步非阻塞网络传输。
+基于 python 的跨平台异步非阻塞网络传输。
 
 1. 运行环境
    - Linux 32/64
-   - python 3.5 +
+   - python 3.6 +
 2. 部署及使用说明
    * 此部分一般和 manager 部分一起部署，参见前述。
    * 如需分开部署，需保证 manager 和 server 访问同一个 redis 数据库，可在 `manager/manager/settings.py` 里面修改REDIS_HOST 与 REDIS_PORT
@@ -46,8 +46,6 @@ a system to distribute configure files using Django and python.
    * Server 可以多开，提高分发效率
 3. 注意事项
    - 使用前请先编辑配置好配置文件
-4. 单元测试
-   - TODO
 
 ### 客户端(/agent)
 
@@ -55,12 +53,10 @@ a system to distribute configure files using Django and python.
 
 1. 运行环境
    - Linux 32/64
-   - python 3.5 +
+   - python 3.6 +
 2. 部署及使用说明
-   - nohup python3 client/Client.py &
+   - nohup python3 client/Client.py >/dev/null &
    - 或者使用 supervisor 等工具
 
 3. 注意事项
-   - 使用前请先编辑配置好配置文件
-4. 单元测试
-   - TODO
+   - 使用前请先根据环境编辑配置好配置文件
